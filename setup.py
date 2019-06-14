@@ -22,7 +22,7 @@ setup(
     long_description=long_description,
     author='',
     author_email='',
-    url='https://github.com/shopify/mode-plotly-assets',
+    url='https://github.com/Shopify/mode-plotly-assets',
     license='MPL-2.0',
     packages=['ModePlotlyAssets'],
 #   no dependencies in this example
