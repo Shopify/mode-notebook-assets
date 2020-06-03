@@ -12,19 +12,19 @@ else:
         long_description = f.read()
 
 version = {}
-with open(os.path.join(_here, 'ModePlotlyAssets', 'version.py')) as f:
+with open(os.path.join(_here, 'ModeNotebookAssets', 'version.py')) as f:
     exec(f.read(), version)
 
 setup(
-    name='ModePlotlyAssets',
+    name='ModeNotebookAssets',
     version=version['__version__'],
-    description=('Convenience Classes for working with Plotly in ModeAnalytics'),
+    description=('Convenience Classes for working with Notebooks in ModeAnalytics'),
     long_description=long_description,
     author='',
     author_email='',
-    url='https://github.com/Shopify/mode-plotly-assets',
+    url='https://github.com/Shopify/mode-notebook-assets',
     license='MPL-2.0',
-    packages=['ModePlotlyAssets'],
+    packages=['ModeNotebookAssets'],
 #   no dependencies in this example
 #   install_requires=[
 #       'dependency==1.2.3',
