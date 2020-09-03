@@ -1,6 +1,8 @@
 import plotly.graph_objs as go
 from plotly.offline import init_notebook_mode, iplot
 
+import pandas as pd
+
 init_notebook_mode(connected=False)
 
 class PlotlyBigNumberGrid():
