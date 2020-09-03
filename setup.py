@@ -24,7 +24,7 @@ setup(
     author_email='',
     url='https://github.com/Shopify/mode-notebook-assets',
     license='MPL-2.0',
-    packages=['ModeNotebookAssets'],
+    packages=['ModeNotebookAssets', 'bignum', 'table'],
 #   no dependencies in this example
 #   install_requires=[
 #       'dependency==1.2.3',
