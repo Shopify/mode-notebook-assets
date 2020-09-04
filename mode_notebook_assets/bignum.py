@@ -306,89 +306,88 @@ class PlotlyBigNumberGrid():
 
 
 class PlotlyBigNumber():
-  '''
-    Replicate Mode's Big Number DataViz in Plotly
-    
-    Usage (single quadrant):
-      bn = PlotlyBigNumber()
-      bn.add_metric('My Header', '{:,.0f}'.format(500), '{:,.2f}%'.format(.05)),
-      bn.plot()
-  '''
+    '''
+      Replicate Mode's Big Number DataViz in Plotly
 
-  MODE_CELL_WIDTH = {
-    "col-md-2"  : 174,
-    "col-md-3"  : 260,
-    "col-md-4"  : 366,
-    "col-md-5"  : 462,
-    "col-md-6"  : 558,
-    "col-md-7"  : 654,
-    "col-md-8"  : 750,
-    "col-md-9"  : 846,
-    "col-md-10" : 942,
-    "col-md-11" : 1038,
-    "col-md-12" : 1133,
-  }
-  
-  MODE_CELL_HEIGHT = {
-    "small"   : 143,
-    "medium"  : 346,
-    "large"   : 489,
-  }
-  
-  def __init__(self, width="col-md-2", height="small"):
-    self.fig = go.FigureWidget()
-    
-    self.fig.add_pie(
-      hole=1,
-      values=[100],
-      hoverinfo="none",
-      textinfo="none",
-    )
-    
-    self.fig.layout = go.Layout(
-      showlegend=False,
-      autosize=False,
-      height=self.MODE_CELL_HEIGHT[height],
-      width=self.MODE_CELL_WIDTH[width],
-      margin={"l":0, "r":0, "t":0, "b":0},
-      paper_bgcolor="rgba(0,0,0,0)",
-      plot_bgcolor="rgba(0,0,0,0)",
-      annotations=[],
-    )
-      
-  def set_bgcolor(self, color):
-    self.fig.layout.paper_bgcolor = color
-    self.fig.layout.plot_bgcolor = color
-  
-  def set_annotations_color(self, color):
-    for annotation in self.fig.layout.annotations:
-      annotation.font.color = color
-  
-  def add_metric(self, header='', body='', footer=''):
-            
-    self.fig.layout.annotations = [
-      go.layout.Annotation(
-        font=go.layout.annotation.Font(size=14),
-        showarrow=False,
-        text='{}'.format(header),
-        x=.5,
-        y=.8
-      ),
-      go.layout.Annotation(
-        font=go.layout.annotation.Font(size=50),
-        showarrow=False,
-        text='{}'.format(body),
-        x=.5,
-        y=.5
-      ),
-      go.layout.Annotation(
-        font=go.layout.annotation.Font(size=14),
-        showarrow=False,
-        text='{}'.format(footer),
-        x=.5,
-        y=.2
-      )
-    ]
-    
-  def plot(self):
-    iplot(self.fig, config={'displayModeBar': False, 'showLink': True})
+      Usage (single quadrant):
+        bn = PlotlyBigNumber()
+        bn.add_metric('My Header', '{:,.0f}'.format(500), '{:,.2f}%'.format(.05)),
+        bn.plot()
+    '''
+
+    MODE_CELL_WIDTH = {
+        "col-md-2": 174,
+        "col-md-3": 260,
+        "col-md-4": 366,
+        "col-md-5": 462,
+        "col-md-6": 558,
+        "col-md-7": 654,
+        "col-md-8": 750,
+        "col-md-9": 846,
+        "col-md-10": 942,
+        "col-md-11": 1038,
+        "col-md-12": 1133,
+    }
+
+    MODE_CELL_HEIGHT = {
+        "small": 143,
+        "medium": 346,
+        "large": 489,
+    }
+
+    def __init__(self, width="col-md-2", height="small"):
+        self.fig = go.FigureWidget()
+
+        self.fig.add_pie(
+            hole=1,
+            values=[100],
+            hoverinfo="none",
+            textinfo="none",
+        )
+
+        self.fig.layout = go.Layout(
+            showlegend=False,
+            autosize=False,
+            height=self.MODE_CELL_HEIGHT[height],
+            width=self.MODE_CELL_WIDTH[width],
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            annotations=[],
+        )
+
+    def set_bgcolor(self, color):
+        self.fig.layout.paper_bgcolor = color
+        self.fig.layout.plot_bgcolor = color
+
+    def set_annotations_color(self, color):
+        for annotation in self.fig.layout.annotations:
+            annotation.font.color = color
+
+    def add_metric(self, header='', body='', footer=''):
+        self.fig.layout.annotations = [
+            go.layout.Annotation(
+                font=go.layout.annotation.Font(size=14),
+                showarrow=False,
+                text='{}'.format(header),
+                x=.5,
+                y=.8
+            ),
+            go.layout.Annotation(
+                font=go.layout.annotation.Font(size=50),
+                showarrow=False,
+                text='{}'.format(body),
+                x=.5,
+                y=.5
+            ),
+            go.layout.Annotation(
+                font=go.layout.annotation.Font(size=14),
+                showarrow=False,
+                text='{}'.format(footer),
+                x=.5,
+                y=.2
+            )
+        ]
+
+    def plot(self):
+        iplot(self.fig, config={'displayModeBar': False, 'showLink': True})
