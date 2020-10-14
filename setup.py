@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 import sys
 
@@ -12,11 +12,11 @@ else:
         long_description = f.read()
 
 version = {}
-with open(os.path.join(_here, 'ModeNotebookAssets', 'version.py')) as f:
+with open(os.path.join(_here, 'mode_notebook_assets', 'version.py')) as f:
     exec(f.read(), version)
 
 setup(
-    name='ModeNotebookAssets',
+    name='mode_notebook_assets',
     version=version['__version__'],
     description=('Convenience Classes for working with Notebooks in ModeAnalytics'),
     long_description=long_description,
@@ -24,17 +24,15 @@ setup(
     author_email='',
     url='https://github.com/Shopify/mode-notebook-assets',
     license='MPL-2.0',
-    packages=['ModeNotebookAssets'],
-#   no dependencies in this example
+    packages=['mode_notebook_assets'],
 #   install_requires=[
 #       'dependency==1.2.3',
 #   ],
-#   no scripts in this example
 #   scripts=['bin/a-script'],
     include_package_data=True,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Science/Research',
-        # 'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.6'],
+        'Intended Audience :: Developers',
+        'Programming Language :: Python :: 3.6'
+        ],
     )
