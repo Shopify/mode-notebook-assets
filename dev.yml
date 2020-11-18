@@ -1,0 +1,9 @@
+name: mode-notebook-assets
+
+type: python
+
+up:
+  - python: 3.7.3
+  - pip:
+    - requirements.txt
+    # - path/to/other.txt
