@@ -1,1 +1,1 @@
-import practical_dashboard_displays.metric_evaluation_pipeline
+from practical_dashboard_displays import metric_evaluation_pipeline
