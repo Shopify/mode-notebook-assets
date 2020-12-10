@@ -7,3 +7,7 @@ up:
   - pip:
     - requirements.txt
     # - path/to/other.txt
+  - custom:
+      name: "Load mode_notebook_assets module."
+      met?: "pip show mode_notebook_assets | grep -i \"location: $(pwd)\""
+      meet: "pip install -e ."
