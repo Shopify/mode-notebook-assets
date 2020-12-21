@@ -272,7 +272,7 @@ class MetricEvaluationPipeline:
         fig.update_yaxes(visible=False, fixedrange=True)
 
         # remove facet/subplot labels
-        fig.update_layout(annotations=[], overwrite=True)
+        fig.update_layout(annotations=[])
 
         # strip down the rest of the plot
         fig.update_layout(
