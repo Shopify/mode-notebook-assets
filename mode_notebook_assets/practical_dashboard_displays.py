@@ -21,10 +21,21 @@ class MetricEvaluationPipeline:
     sudden_change_minimum_periods: int = 7
     sudden_change_rolling_calculation_periods: int = None
 
-    check_change_in_steady_state_long: bool = True
+    check_change_in_steady_state_long: bool = False
     change_in_steady_state_long_minimum_periods: int = 14
 
+    disable_warnings: bool = False
+
     def __post_init__(self):
+
+        if self.check_change_in_steady_state_long and not self.disable_warnings:
+            raise Warning(
+                'The steady_state_long actionability check is an alpha feature and not recommended'
+                'for actual use. The current method of a rolling train/test window causes unexpected'
+                'results, such as the long run index changing unexpectedly due to the changing historical'
+                'average. If you wish to proceed, set the disable_warnings argument to True'
+            )
+
         _outside_of_normal_range_results = outside_of_normal_range(
             self.s,
             minimum_periods=self.outside_of_normal_range_minimum_periods,
