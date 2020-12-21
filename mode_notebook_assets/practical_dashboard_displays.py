@@ -117,7 +117,7 @@ class MetricEvaluationPipeline:
 
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
                                           is_higher_good=True, is_lower_good=False, good_palette=None, bad_palette=None,
-                                          ambiguous_palette=None):
+                                          ambiguous_palette=None, show_legend=False):
         df = self.results.dropna()
 
         fig = go.Figure(
@@ -151,7 +151,7 @@ class MetricEvaluationPipeline:
                     ),
                     line=dict(color='lightgray', dash='dash'),
                     hoverinfo='skip',
-                    showlegend=False,
+                    showlegend=show_legend,
                 )
             )
 
@@ -185,7 +185,7 @@ class MetricEvaluationPipeline:
                         actionable_periods_df[['general_actionability_score', 'is_valence_ambiguous']].to_records()
                     ]
                 ),
-                showlegend=False,
+                showlegend=show_legend,
             )
         )
 
@@ -204,7 +204,7 @@ class MetricEvaluationPipeline:
                         size=10,
                         color=['lightgray'] * len(historical_actionable_periods_df.period_value),
                     ),
-                    showlegend=False,
+                    showlegend=show_legend,
                 )
             )
 
@@ -216,7 +216,7 @@ class MetricEvaluationPipeline:
                 mode='lines',
                 name=metric_name or 'Period Value',
                 line=dict(color='gray', width=4),
-                showlegend=False,
+                showlegend=show_legend,
             )
         )
 
