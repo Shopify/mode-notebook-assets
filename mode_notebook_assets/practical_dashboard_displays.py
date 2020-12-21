@@ -267,7 +267,7 @@ def change_in_steady_state_long(s: pd.Series, minimum_periods=14) -> pd.DataFram
         L2_LONG_RUN_ACTIONABILITY_THRESHOLD = 9
 
         if len(values) >= local_minimum_n_periods:
-            train_test_breakpoint_index = int(len(values) / 2)
+            train_test_breakpoint_index = max(int(len(values) / 2), local_minimum_n_periods)
             training_series = values_series[:train_test_breakpoint_index]
             testing_series = values_series[train_test_breakpoint_index:]
 
@@ -295,8 +295,8 @@ def change_in_steady_state_long(s: pd.Series, minimum_periods=14) -> pd.DataFram
                 last_value_less_than_historical_mean = current_value_less_than_historical_mean
 
             change_in_steady_state_long_actionability_score = 0 if current_long_run < L1_LONG_RUN_ACTIONABILITY_THRESHOLD else (
-                    .01 + (-1 if last_value_less_than_historical_mean else 1) * (
-                    (current_long_run - L1_LONG_RUN_ACTIONABILITY_THRESHOLD) /
+                    (-1 if last_value_less_than_historical_mean else 1) * (
+                    .01 + (current_long_run - L1_LONG_RUN_ACTIONABILITY_THRESHOLD) /
                     (L2_LONG_RUN_ACTIONABILITY_THRESHOLD - L1_LONG_RUN_ACTIONABILITY_THRESHOLD))
             )
 
