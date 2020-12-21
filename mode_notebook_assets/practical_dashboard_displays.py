@@ -184,6 +184,105 @@ class MetricEvaluationPipeline:
 
         return _text
 
+    def display_sparkline_time_series(self, metric_name=None):
+
+        df = self.results.dropna()
+
+        fig = go.Figure(
+            layout=go.Layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                hovermode='x',
+            )
+        )
+
+        # plot period values first to define x axis
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df.period_value,
+                mode='lines',
+                name=metric_name or 'Period Value',
+                line=dict(color='gray', width=4),
+                hoverinfo='skip',
+            )
+        )
+
+        # plot actionable periods
+        actionable_periods_df = df.query('general_actionability_score != 0')
+        fig.add_trace(
+            go.Scatter(
+                x=actionable_periods_df.index,
+                y=actionable_periods_df.period_value,
+                mode='markers',
+                name='Actionability',
+                hovertext=[
+                    self.write_actionability_summary(
+                        record,
+                        is_higher_good=self.is_higher_good,
+                        is_lower_good=self.is_lower_good,
+                    ) for record in actionable_periods_df.to_records()],
+                hoverinfo="text",
+                marker=dict(
+                    size=10,
+                    color=[
+                        map_actionability_score_to_color(
+                            score,
+                            is_valence_ambiguous=is_valence_ambiguous,
+                            is_higher_good=self.is_higher_good,
+                            is_lower_good=self.is_lower_good,
+                            good_palette=self.good_palette,
+                            bad_palette=self.bad_palette,
+                            ambiguous_palette=self.ambiguous_palette,
+                        ) for period, score, is_valence_ambiguous in
+                        actionable_periods_df[['general_actionability_score', 'is_valence_ambiguous']].to_records()
+                    ]
+                ),
+            )
+        )
+
+        # Cover up past actionable periods with neutral color
+        fig.add_trace(
+            go.Scatter(
+                x=actionable_periods_df.index,
+                y=actionable_periods_df.period_value,
+                mode='markers',
+                name='Historical Alerts',
+                hoverinfo="skip",
+                marker=dict(
+                    size=10,
+                    color=['white'] * len(actionable_periods_df.period_value),
+                ),
+            )
+        )
+
+        # plot period values for display
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df.period_value,
+                name=metric_name or 'Period Value',
+                mode='lines',
+                line=dict(color='gray', width=4),
+            )
+        )
+
+        # hide and lock down axes
+        fig.update_xaxes(visible=False, fixedrange=True)
+        fig.update_yaxes(visible=False, fixedrange=True)
+
+        # remove facet/subplot labels
+        fig.update_layout(annotations=[], overwrite=True)
+
+        # strip down the rest of the plot
+        fig.update_layout(
+            showlegend=False,
+            plot_bgcolor="white",
+            margin=dict(t=10,l=10,b=10,r=10)
+        )
+
+        return fig
+
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
                                           show_legend=False):
         df = self.results.dropna()
