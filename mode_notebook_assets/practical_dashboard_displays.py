@@ -133,6 +133,7 @@ class MetricEvaluationPipeline:
         threshold_value_list = [
             'high_l2_threshold_value',
             'high_l1_threshold_value',
+            'normal_range_rolling_baseline',
             'low_l1_threshold_value',
             'low_l2_threshold_value',
         ]
@@ -148,7 +149,7 @@ class MetricEvaluationPipeline:
                         is_higher_good=is_higher_good,
                         is_lower_good=is_lower_good,
                     ),
-                    line=dict(color=('lightgray' if 'l1' in colname else 'darkgray'), dash='dash'),
+                    line=dict(color='lightgray', dash='dash'),
                     hoverinfo='skip',
                     showlegend=False,
                 )
@@ -447,8 +448,8 @@ def outside_of_normal_range(s: pd.Series, minimum_periods=8, rolling_calculation
                 'high_l2_threshold_value':          high_l2_threshold_value,
 
                 # Intermediate Calculations
-                'mean_of_historical_values':        mean_of_historical_values,
-                'mean_of_pop_differences':          mean_of_pop_differences,
+                'normal_range_rolling_baseline':    mean_of_historical_values,
+                'normal_range_rolling_deviation':   mean_of_pop_differences,
             }
 
         else:
@@ -468,6 +469,7 @@ def outside_of_normal_range(s: pd.Series, minimum_periods=8, rolling_calculation
         'normal_range_actionability_score',
         'low_l2_threshold_value',
         'low_l1_threshold_value',
+        'normal_range_rolling_baseline',
         'high_l1_threshold_value',
         'high_l2_threshold_value',
     ]
