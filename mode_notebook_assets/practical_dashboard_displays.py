@@ -185,8 +185,7 @@ class MetricEvaluationPipeline:
         return _text
 
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
-                                          is_higher_good=True, is_lower_good=False, good_palette=None, bad_palette=None,
-                                          ambiguous_palette=None, show_legend=False):
+                                          show_legend=False):
         df = self.results.dropna()
 
         fig = go.Figure(
@@ -215,8 +214,8 @@ class MetricEvaluationPipeline:
                         mode='lines',
                         name=map_threshold_labels_to_name_by_configuration(
                             colname,
-                            is_higher_good=is_higher_good,
-                            is_lower_good=is_lower_good,
+                            is_higher_good=self.is_higher_good,
+                            is_lower_good=self.is_lower_good,
                         ),
                         line=dict(color='lightgray', dash='dash'),
                         hoverinfo='skip',
@@ -235,8 +234,8 @@ class MetricEvaluationPipeline:
                 hovertext=[
                     self.write_actionability_summary(
                         record,
-                        is_higher_good=is_higher_good,
-                        is_lower_good=is_lower_good,
+                        is_higher_good=self.is_higher_good,
+                        is_lower_good=self.is_lower_good,
                     ) for record in actionable_periods_df.to_records()],
                 hoverinfo="text",
                 marker=dict(
@@ -245,11 +244,11 @@ class MetricEvaluationPipeline:
                         map_actionability_score_to_color(
                             score,
                             is_valence_ambiguous=is_valence_ambiguous,
-                            is_higher_good=is_higher_good,
-                            is_lower_good=is_lower_good,
-                            good_palette=good_palette,
-                            bad_palette=bad_palette,
-                            ambiguous_palette=ambiguous_palette,
+                            is_higher_good=self.is_higher_good,
+                            is_lower_good=self.is_lower_good,
+                            good_palette=self.good_palette,
+                            bad_palette=self.bad_palette,
+                            ambiguous_palette=self.ambiguous_palette,
                         ) for period, score, is_valence_ambiguous in
                         actionable_periods_df[['general_actionability_score', 'is_valence_ambiguous']].to_records()
                     ]
