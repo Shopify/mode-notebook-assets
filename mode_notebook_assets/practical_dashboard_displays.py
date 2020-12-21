@@ -13,16 +13,16 @@ import plotly.express as px
 class MetricEvaluationPipeline:
     s: pd.Series
 
-    check_outside_of_normal_range = True
-    outside_of_normal_range_minimum_periods = 8
-    outside_of_normal_range_rolling_calculation_periods = None
+    check_outside_of_normal_range: bool = True
+    outside_of_normal_range_minimum_periods: int = 8
+    outside_of_normal_range_rolling_calculation_periods: int = None
 
-    check_sudden_change = True
-    sudden_change_minimum_periods = 7
-    sudden_change_rolling_calculation_periods = None
+    check_sudden_change: bool = True
+    sudden_change_minimum_periods: int = 7
+    sudden_change_rolling_calculation_periods: int = None
 
-    check_change_in_steady_state_long = True
-    change_in_steady_state_long_minimum_periods = 14
+    check_change_in_steady_state_long: bool = True
+    change_in_steady_state_long_minimum_periods: int = 14
 
     def __post_init__(self):
         _outside_of_normal_range_results = outside_of_normal_range(
