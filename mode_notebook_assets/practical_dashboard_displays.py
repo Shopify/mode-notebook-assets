@@ -475,6 +475,9 @@ def outside_of_normal_range(s: pd.Series, minimum_periods=8, rolling_calculation
     _t['period_value'] = s
 
     for colname in output_columns:
+        # TODO: This is very inefficient. For this to scale, especially scanning
+        #       many time series, shouldn't re-do each ts calculation five times
+        #       unnecessarily!
         create_output_column_for_rolling_period(
             _outside_of_normal_range_point_in_time,
             _t,
