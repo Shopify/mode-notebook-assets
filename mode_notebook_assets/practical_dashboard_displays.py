@@ -27,6 +27,12 @@ class MetricEvaluationPipeline:
 
     disable_warnings: bool = False
 
+    is_higher_good: bool = True
+    is_lower_good: bool = False
+    good_palette: list = None
+    bad_palette: list = None
+    ambiguous_palette: list = None
+
     def __post_init__(self):
 
         if self.check_change_in_steady_state_long and not self.disable_warnings:
@@ -95,9 +101,41 @@ class MetricEvaluationPipeline:
             'is_valence_ambiguous':        len(set(np.sign(x) for x in record.values() if pd.notna(x) and x != 0)) > 1,
         }
 
+    def get_current_record(self):
+        return self.results.to_dict(orient='records')[-1]
+
     def get_current_actionability_status(self):
-        current_record = self.results.to_dict(orient='records')[-1]
-        return current_record['general_actionability_score']
+        return self.get_current_record()['general_actionability_score']
+
+    def is_current_actionability_ambiguous(self):
+        return self.get_current_record()['is_valence_ambiguous']
+
+    def get_current_actionability_status_dot(self):
+        def generate_dot_html(color):
+            return '''
+                  <html>
+                  <style>
+                  .dot {{
+                    height: 25px;
+                    width: 25px;
+                    background-color: #bbb;
+                    border-radius: 50%;
+                    display: inline-block;
+                  }}
+                  </style>
+                  <span class="dot" style="background-color: {color}"></span>
+                  </html>
+              '''.format(color=color)
+
+        return generate_dot_html(map_actionability_score_to_color(
+            x=self.get_current_actionability_status(),
+            is_valence_ambiguous=self.is_current_actionability_ambiguous(),
+            is_higher_good=self.is_higher_good,
+            is_lower_good=self.is_lower_good,
+            good_palette=self.good_palette,
+            bad_palette=self.bad_palette,
+            ambiguous_palette=self.ambiguous_palette
+        ))
 
     def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False):
 
@@ -529,7 +567,7 @@ def map_actionability_score_to_color(x: float, is_valence_ambiguous=False, is_hi
     _ambiguous_palette = list(ambiguous_palette or ['rgb(255,174,66)'])
 
     if x == 0:
-        return 'rgb(0,0,0)'
+        return 'rgb(211,211,211)'
     elif is_valence_ambiguous:
         return _ambiguous_palette[
             int(min(np.floor(np.abs(x) * (len(_ambiguous_palette) - 1)), len(_ambiguous_palette) - 1))]
