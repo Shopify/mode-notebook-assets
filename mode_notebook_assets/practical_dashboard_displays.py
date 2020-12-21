@@ -7,6 +7,7 @@ import numpy as np
 
 import plotly.graph_objects as go
 import plotly.express as px
+from IPython.core.display import HTML
 
 
 @dataclass
@@ -576,3 +577,29 @@ def map_threshold_labels_to_name_by_configuration(label: str, is_higher_good=Tru
         return 'Extraordinary' if is_lower_good else 'Crisis'
     else:
         return label
+
+
+def html_div_grid(html_elements:list, columns=3):
+
+    def table_div(s):
+        return f'<div style="width:100%; display: table;">{s}</div>'
+
+    def row_div(s):
+        return f'<div style="display: table-row;">{s}</div>'
+
+    def cell_div(s):
+        return f'<div style="display: table-cell;">{s}</div>'
+
+    html_element_rows = [html_elements[i*columns:min(i*columns+columns, len(html_elements))] for i in range(0, len(html_elements)//columns+1)]
+    html_format = table_div(''.join(row_div(''.join(cell_div(e) for e in l)) for l in html_element_rows))
+    return html_format
+
+
+def plotly_div_grid(fig_list: list, columns=3):
+    def handle_element(e):
+        if isinstance(e, str):
+            return e
+        else:
+            return e.to_html()
+
+    return HTML(html_div_grid([handle_element(fig) for fig in fig_list], columns=columns))
