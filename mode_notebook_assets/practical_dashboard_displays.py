@@ -42,34 +42,39 @@ class MetricEvaluationPipeline:
             minimum_periods=self.change_in_steady_state_long_minimum_periods
         ) if self.check_change_in_steady_state_long else None
 
-        _results = pd.concat(
-            [df for df in
-             [_outside_of_normal_range_results, _sudden_change_results, _change_in_steady_state_long_results] if
-             df is not None],
-            axis=1
-        )
+        self._actionability_score_columns = [
+            s for s in [
+                'normal_range_actionability_score' if self.check_outside_of_normal_range else None,
+                'sudden_change_actionability_score' if self.check_sudden_change else None,
+                'change_in_steady_state_long_actionability_score' if self.check_change_in_steady_state_long else None,
+            ] if s is not None
+        ]
 
-        _results = _results.loc[:, ~_results.columns.duplicated()]
+        if len(self._actionability_score_columns) > 0:
+            _results = pd.concat(
+                [df for df in
+                 [_outside_of_normal_range_results, _sudden_change_results, _change_in_steady_state_long_results] if
+                 df is not None],
+                axis=1
+            )
 
-        self._actionability_score_columns = [s for s in [
-            'normal_range_actionability_score' if self.check_outside_of_normal_range else None,
-            'sudden_change_actionability_score' if self.check_sudden_change else None,
-            'change_in_steady_state_long_actionability_score' if self.check_change_in_steady_state_long else None,
-        ] if s is not None
-                                             ]
+            _results = _results.loc[:, ~_results.columns.duplicated()]
 
-        self.results = pd.concat([
-            _results,
-            pd.DataFrame.from_records(
-                [self.combine_actionability_scores(r) for r in
-                 _results[self._actionability_score_columns].to_dict(orient='records')],
-                index=_results.index,
-            ),
-        ],
-            axis=1,
-        )
+            self.results = pd.concat([
+                    _results,
+                    pd.DataFrame.from_records(
+                        [self.combine_actionability_scores(r) for r in
+                         _results[self._actionability_score_columns].to_dict(orient='records')],
+                        index=_results.index,
+                    )
+                ], axis=1,)
+        else:
+            _results = pd.DataFrame(self.s)
+            _results['period_value'] = self.s
+            self.results = _results.assign(general_actionability_score=0, is_valence_ambiguous=False)
 
-    def combine_actionability_scores(self, record: dict):
+    @staticmethod
+    def combine_actionability_scores(record: dict):
         return {
             # Take the actionability score farthest from zero
             'general_actionability_score': max(record.values(), key=np.abs),
@@ -87,29 +92,39 @@ class MetricEvaluationPipeline:
             is_lower_good=is_lower_good
         ) + '</b>'
 
-        _normal_range_sign = np.sign(record["normal_range_actionability_score"])
-        _sudden_change_sign = np.sign(record["normal_range_actionability_score"])
-        _change_in_steady_state_long_sign = np.sign(record["change_in_steady_state_long_actionability_score"])
+        if self.check_outside_of_normal_range:
+            _normal_range_sign = np.sign(record["normal_range_actionability_score"])
+            _high_or_low = (
+                    ("<b>high</b>" if record["normal_range_actionability_score"] > 0 else "<b>low</b>") + \
+                    " compared with historical ranges"
+            )
+            _within_normal_str = "within a <b>normal</b> range based on historical values"
+            _is_in_normal_range = record["normal_range_actionability_score"] == 0
+            _normal_range_summary = (
+                f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}.')
+        else:
+            _normal_range_summary = None
 
-        _high_or_low = (
-                ("<b>high</b>" if record["normal_range_actionability_score"] > 0 else "<b>low</b>") +\
-                " compared with historical ranges"
-        )
-        _within_normal_str = "within a <b>normal</b> range based on historical values"
-        _normal_range_summary = (
-            f'Metric is {_within_normal_str if record["normal_range_actionability_score"] == 0 else (_high_or_low)}.')
+        if self.check_sudden_change:
+            _sudden_change_sign = np.sign(record["sudden_change_actionability_score"])
+            _sudden_dip_or_spike_summary = (
+                None if _sudden_change_sign == 0
+                else f'Metric <b>{"increased" if _sudden_change_sign == 1 else "decreased"} '
+                     f'suddenly</b> compared to historical values.'
+            )
+        else:
+            _sudden_dip_or_spike_summary = None
 
-        _sudden_dip_or_spike_summary = (
-            None if _sudden_change_sign == 0
-            else f'Metric <b>{"increased" if _sudden_change_sign == 1 else "decreased"} '
-                 f'suddenly</b> compared to historical values.'
-        )
+        if self.check_change_in_steady_state_long:
+            _change_in_steady_state_long_sign = np.sign(record["change_in_steady_state_long_actionability_score"])
+            _change_in_steady_state_long_summary = (
+                None if _change_in_steady_state_long_sign == 0
+                else f'Metric has been <b>{"above" if _change_in_steady_state_long_sign == 1 else "below"}</b> the '
+                     f'historical average for {int(record["current_long_run"])} consecutive periods.'
+            )
+        else:
+            _change_in_steady_state_long_summary = None
 
-        _change_in_steady_state_long_summary = (
-            None if _change_in_steady_state_long_sign == 0
-            else f'Metric has been <b>{"above" if _change_in_steady_state_long_sign == 1 else "below"}</b> the '
-                 f'historical average for {int(record["current_long_run"])} consecutive periods.'
-        )
         _text = "<br>".join([s for s in [_description, _normal_range_summary, _sudden_dip_or_spike_summary,
                                          _change_in_steady_state_long_summary] if s])
 
@@ -128,32 +143,32 @@ class MetricEvaluationPipeline:
                 hovermode='x',
             )
         )
+        if self.check_outside_of_normal_range:
+            # plot thresholds
+            threshold_value_list = [
+                'high_l2_threshold_value',
+                'high_l1_threshold_value',
+                'normal_range_rolling_baseline',
+                'low_l1_threshold_value',
+                'low_l2_threshold_value',
+            ]
 
-        # plot thresholds
-        threshold_value_list = [
-            'high_l2_threshold_value',
-            'high_l1_threshold_value',
-            'normal_range_rolling_baseline',
-            'low_l1_threshold_value',
-            'low_l2_threshold_value',
-        ]
-
-        for colname in threshold_value_list:
-            fig.add_trace(
-                go.Scatter(
-                    x=df.index,
-                    y=df[colname],
-                    mode='lines',
-                    name=map_threshold_labels_to_name_by_configuration(
-                        colname,
-                        is_higher_good=is_higher_good,
-                        is_lower_good=is_lower_good,
-                    ),
-                    line=dict(color='lightgray', dash='dash'),
-                    hoverinfo='skip',
-                    showlegend=show_legend,
+            for colname in threshold_value_list:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df.index,
+                        y=df[colname],
+                        mode='lines',
+                        name=map_threshold_labels_to_name_by_configuration(
+                            colname,
+                            is_higher_good=is_higher_good,
+                            is_lower_good=is_lower_good,
+                        ),
+                        line=dict(color='lightgray', dash='dash'),
+                        hoverinfo='skip',
+                        showlegend=show_legend,
+                    )
                 )
-            )
 
         # plot actionable periods
         actionable_periods_df = df.query('general_actionability_score != 0')

@@ -35,4 +35,13 @@ def test_disable_multiple_statistics():
     ).display_actionability_time_series()
 
 
+def test_disable_all_actionability_checks():
+    assert pdd.MetricEvaluationPipeline(
+        _ts,
+        check_outside_of_normal_range=False,
+        check_change_in_steady_state_long=False,
+        check_sudden_change=False
+    ).display_actionability_time_series()
+
+
 pytest.main()
