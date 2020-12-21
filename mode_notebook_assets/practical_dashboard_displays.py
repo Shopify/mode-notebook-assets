@@ -94,6 +94,10 @@ class MetricEvaluationPipeline:
             'is_valence_ambiguous':        len(set(np.sign(x) for x in record.values() if pd.notna(x) and x != 0)) > 1,
         }
 
+    def get_current_actionability_status(self):
+        current_record = self.results.to_dict(orient='records')[-1]
+        return current_record['general_actionability_score']
+
     def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False):
 
         _description = '<b>' + map_actionability_score_to_description(
