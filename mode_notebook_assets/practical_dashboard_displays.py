@@ -751,9 +751,54 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
     return html
 
 
-def convert_metric_status_table_to_html(df: pd.DataFrame):
-    return df.to_html(
-        escape=False,
-        index=False,
-        header=False
-    )
+def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_actionability_score=False,
+                                        sort_records_by_actionability=False, sort_records_by_value=False,
+                                        font_color='#3C3C3C', title_color='#2A3F5F'):
+
+    _df = df.copy()
+
+    if sort_records_by_actionability and sort_records_by_value:
+        if 'Actionability Score' in _df.columns and 'Current Value' in _df.columns:
+            _df = _df.assign(
+                sorting_key=lambda df: df['Actionability Score'] * df['Current Value'],
+            ).sort_values(
+                by='sorting_key',
+                ascending=False,
+            ).drop(
+                columns=['sorting_key']
+            )
+        elif sort_records_by_value:
+            _df = _df.sort_values(key=lambda r: r['Current Value'])
+        elif sort_records_by_actionability:
+            _df = _df.sort_values(key=lambda r: r['Actionability Score'])
+        else:
+            pass
+
+    if include_actionability_score is False and 'Actionability Score' in _df.columns:
+        _df = _df[[c for c in _df.columns if c != 'Actionability Score']]
+
+    _output = _df.style.set_table_styles(
+        [{'selector': '.row_heading',
+          'props': [('display', 'none')]},
+         {'selector': '.col_heading',
+          'props': [('display', 'none')]},
+         {'selector': '.blank.level0',
+          'props': [('display', 'none')]},
+         {'selector': '.data',
+          'props': [
+              ('font-family', 'Arial'),
+              ('color', font_color),
+              ('border-width', 0),
+          ]}]
+    ).format({
+        'Current Value': '{:.0f}',
+        'Metric': f'<b style="color: {title_color}">{{}}</b>'
+    }).bar(
+        'Current Value',
+        color='lightgray',
+    ).render(header=False, index=False)
+
+    if title is not None:
+        _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
+
+    return _output
