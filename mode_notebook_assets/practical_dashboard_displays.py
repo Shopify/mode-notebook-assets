@@ -784,12 +784,13 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
           'props': [('display', 'none')]},
          {'selector': '.blank.level0',
           'props': [('display', 'none')]},
+         {'selector': '.table',
+          'props': [('text-align', 'left')]},
          {'selector': '.data',
           'props': [
               ('font-family', 'Arial'),
               ('color', font_color),
               ('border-width', 0),
-              ('text-align', 'left'),
           ]}]
     ).format({
         'Current Value': '{:.0f}',
