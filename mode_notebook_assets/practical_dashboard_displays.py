@@ -114,7 +114,7 @@ class MetricEvaluationPipeline:
         return self.get_current_record()['is_valence_ambiguous']
 
     def get_current_actionability_status_dot(self):
-        return dot(map_actionability_score_to_color(
+        _color = map_actionability_score_to_color(
             x=self.get_current_actionability_status(),
             is_valence_ambiguous=self.is_current_actionability_ambiguous(),
             is_higher_good=self.is_higher_good,
@@ -122,7 +122,13 @@ class MetricEvaluationPipeline:
             good_palette=self.good_palette,
             bad_palette=self.bad_palette,
             ambiguous_palette=self.ambiguous_palette
-        ))
+        )
+
+        _hex_color = '#%02x%02x%02x' % tuple(
+            int(s) for s in _color.replace('rgb(', '').replace(')', '').split(',')
+        )
+
+        return dot(_hex_color)
 
     def get_current_sparkline(self, periods=20):
         return sparkline(self.results.tail(periods)['period_value'])
