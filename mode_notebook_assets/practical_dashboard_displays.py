@@ -7,7 +7,6 @@ import numpy as np
 
 import plotly.graph_objects as go
 import plotly.express as px
-from IPython.core.display import HTML
 
 import base64
 import matplotlib.pyplot as plt
@@ -642,7 +641,7 @@ def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', col
 
     html_element_rows = [html_elements[i*columns:min(i*columns+columns, len(html_elements))] for i in range(0, len(html_elements)//columns+1)]
     html_format = table_div(''.join(row_div(''.join(cell_div(e) for e in l)) for l in html_element_rows))
-    return HTML(html_format)
+    return html_format
 
 
 def plotly_div_grid(fig_list: list, **kwargs):
@@ -652,13 +651,10 @@ def plotly_div_grid(fig_list: list, **kwargs):
         else:
             return e.to_html()
 
-    return HTML(
-        html_div_grid(
+    return html_div_grid(
             [handle_element(fig) for fig in fig_list],
             **kwargs,
         )
-    )
-
 
 def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4, 0.25), **kwargs):
     """
@@ -773,7 +769,7 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     if title is not None:
         _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
 
-    return HTML(_output)
+    return _output
 
 
 @dataclass
