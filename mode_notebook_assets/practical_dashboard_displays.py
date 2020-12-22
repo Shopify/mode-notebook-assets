@@ -812,3 +812,90 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
         _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
 
     return _output
+
+
+class DatasetEvaluationGenerator:
+
+    df: pd.DataFrame
+    grouping_set: list
+    index_column: str
+    measure_column: str
+    title_format_template: str = None
+
+    def generate_grouping_set_series_lookup(self):
+        _df = self.df.copy().reset_index()
+
+        _grouping_set_actuals = list(
+            _df.groupby(self.grouping_set)
+                .sum()[self.measure_column]
+                .sort_values(ascending=False).index
+        )
+
+        _output = {}
+
+        for s in _grouping_set_actuals:
+            if self.title_format_template is None:
+                _key = ' '.join(s)
+            else:
+                _key = self.title_format_template.format(*s)
+
+            _output[_key] = (
+                _df[(_df[self.grouping_set] == s).all(axis=1)]
+                    .set_index(self.index_column)[self.measure_column]
+            )
+
+        return _output
+
+    def generate_grouping_set_metric_pipeline_lookup(self, metric_evaluation_pipeline_options=None):
+        _data_series_lookup = self.generate_grouping_set_series_lookup()
+
+        _pipeline_lookup = {
+            key: MetricEvaluationPipeline(
+                series,
+                metric_name=key,
+                measure_name=self.measure_column,
+                **(metric_evaluation_pipeline_options or {}),
+            ) for key, series in _data_series_lookup.items()
+        }
+
+        return _pipeline_lookup
+
+    def generate_actionability_time_series_figures(self, actionability_time_series_options=None):
+
+        return [
+            pipeline.display_actionability_time_series(
+                title=key,
+                metric_name=self.measure_column,
+                **(actionability_time_series_options or {}),
+            )
+            for key, pipeline in self.generate_grouping_set_metric_pipeline_lookup().items()
+        ]
+
+    def display_actionability_time_series_grid(self, actionability_time_series_options=None,
+                                               plotly_div_grid_options=None):
+
+        return plotly_div_grid(
+            self.generate_actionability_time_series_figures(
+                actionability_time_series_options=actionability_time_series_options
+            ),
+            **(plotly_div_grid_options or {})
+        )
+
+    def generate_actionability_summary_records(self, get_current_display_record_options=None):
+
+        return [
+            pipeline.get_current_display_record(
+                **(get_current_display_record_options or {})
+            )
+            for key, pipeline in self.generate_grouping_set_metric_pipeline_lookup()
+        ]
+
+    def display_actionability_summary_records(self, get_current_display_record_options=None,
+                                              html_div_grid_options=None):
+
+        return html_div_grid(
+            self.generate_actionability_summary_records(
+                get_current_display_record_options=get_current_display_record_options
+            ),
+            **(html_div_grid_options or {})
+        )
