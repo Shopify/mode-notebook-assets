@@ -667,10 +667,10 @@ def map_threshold_labels_to_name_by_configuration(label: str, is_higher_good=Tru
         return label
 
 
-def html_div_grid(html_elements:list, columns=3):
+def html_div_grid(html_elements:list, table_width='90%', columns=3):
 
     def table_div(s):
-        return f'<div style="width:100%; display: table;">{s}</div>'
+        return f'<div style="width:{table_width}; display: table;">{s}</div>'
 
     def row_div(s):
         return f'<div style="display: table-row;">{s}</div>'
