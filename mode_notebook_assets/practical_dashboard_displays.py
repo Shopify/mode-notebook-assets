@@ -17,6 +17,9 @@ from io import BytesIO
 class MetricEvaluationPipeline:
     s: pd.Series
 
+    metric_name: str = None
+    measure_name: str = None
+
     check_outside_of_normal_range: bool = True
     outside_of_normal_range_minimum_periods: int = 8
     outside_of_normal_range_rolling_calculation_periods: int = None
@@ -132,6 +135,19 @@ class MetricEvaluationPipeline:
 
     def get_current_sparkline(self, periods=20):
         return sparkline(self.results.tail(periods)['period_value'])
+
+    def get_current_display_record(self, sparkline=True, sparkline_periods=20):
+        _output = {
+            'Metric': self.metric_name,
+            'Current Value': self.get_current_record()['period_value'],
+            'Actionability Score': self.get_current_actionability_status(),
+            'Status Dot': self.get_current_actionability_status_dot(),
+        }
+
+        if sparkline:
+            _output['Sparkline'] = self.get_current_sparkline(periods=sparkline_periods)
+
+        return _output
 
     def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False):
 
@@ -734,3 +750,10 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
     html = """<img style="height:40px;width:40px;" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
     return html
 
+
+def convert_metric_status_table_to_html(df: pd.DataFrame):
+    return df.to_html(
+        escape=False,
+        index=False,
+        header=False
+    )
