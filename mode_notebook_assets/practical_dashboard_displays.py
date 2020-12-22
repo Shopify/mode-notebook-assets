@@ -137,13 +137,13 @@ class MetricEvaluationPipeline:
         return sparkline(self.results.tail(periods)['period_value'])
 
     def get_current_display_record(self, sparkline=True, sparkline_periods=20):
-        _output = {
-            'Metric': self.metric_name,
-            'Current Value': self.get_current_record()['period_value'],
-            'Actionability Score': self.get_current_actionability_status(),
-            'Status Dot': self.get_current_actionability_status_dot(),
-        }
 
+        _output = {'Metric': self.metric_name} if self.metric_name else {}
+
+        _output['Current Value'] = self.get_current_record()['period_value']
+        _output['Actionability Score'] = self.get_current_actionability_status()
+        _output['Status Dot'] = self.get_current_actionability_status_dot()
+        
         if sparkline:
             _output['Sparkline'] = self.get_current_sparkline(periods=sparkline_periods)
 
@@ -752,8 +752,8 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
 
 
 def convert_metric_status_table_to_html(df: pd.DataFrame):
-    return df.to_html(
+    return round(df.to_html(
         escape=False,
         index=False,
         header=False
-    )
+    ), 2)
