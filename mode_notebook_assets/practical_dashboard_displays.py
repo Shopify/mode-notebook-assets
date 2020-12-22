@@ -9,6 +9,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from IPython.core.display import HTML
 
+import base64
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 @dataclass
 class MetricEvaluationPipeline:
@@ -679,3 +682,62 @@ def plotly_div_grid(fig_list: list, columns=3):
             return e.to_html()
 
     return HTML(html_div_grid([handle_element(fig) for fig in fig_list], columns=columns))
+
+
+def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4, 0.25), **kwargs):
+    """
+    Create a single HTML image tag containing a base64 encoded
+    sparkline style plot.
+
+    Forked from https://github.com/crdietrich/sparklines on 2020-12-22.
+    """
+
+    data = list(data)
+
+    fig = plt.figure(figsize=figsize)  # set figure size to be small
+    ax = fig.add_subplot(111)
+    plot_len = len(data)
+    point_x = plot_len - 1
+
+    plt.plot(data, linewidth=2, color='gray', **kwargs)
+
+    # turn off all axis annotations
+    ax.axis('off')
+
+    # plot the right-most point larger
+    plt.plot(point_x, data[point_x], color='gray',
+             marker=point_marker, markeredgecolor='gray',
+             markersize=point_size,
+             alpha=point_alpha, clip_on=False)
+
+    # squeeze axis to the edges of the figure
+    fig.subplots_adjust(left=0)
+    fig.subplots_adjust(right=0.99)
+    fig.subplots_adjust(bottom=0.1)
+    fig.subplots_adjust(top=0.9)
+
+    # save the figure to html
+    bio = BytesIO()
+    plt.savefig(bio)
+    plt.close()
+    html = """<img src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    return html
+
+
+def dot(color='gray', figsize=(.5, .5), **kwargs):
+
+    fig = plt.figure(figsize=figsize)  # set figure size to be small
+    ax = fig.add_subplot(111)
+
+    ax.add_artist(plt.Circle((.5, .5), .25, color=color))
+
+    # turn off all axis annotations
+    ax.axis('off')
+
+    # save the figure to html
+    bio = BytesIO()
+    plt.savefig(bio, dpi=300)
+    plt.close()
+    html = """<img style="height:40px;width:40px;" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    return html
+
