@@ -724,21 +724,13 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     _df = df.copy()
 
     if sort_records_by_actionability and sort_records_by_value:
-        if 'Actionability Score' in _df.columns and 'Current Value' in _df.columns:
-            _df = _df.assign(
-                sorting_key=lambda df: df['Actionability Score'] * df['Current Value'],
-            ).sort_values(
-                by='sorting_key',
-                ascending=False,
-            ).drop(
-                columns=['sorting_key']
-            )
-        elif sort_records_by_value:
-            _df = _df.sort_values(key=lambda r: r['Current Value'])
-        elif sort_records_by_actionability:
-            _df = _df.sort_values(key=lambda r: r['Actionability Score'])
-        else:
-            pass
+        _df = _df.sort_values(by=['Actionability Score', 'Current Value'])
+    elif sort_records_by_value:
+        _df = _df.sort_values(by=['Current Value'])
+    elif sort_records_by_actionability:
+        _df = _df.sort_values(by=['Actionability Score'])
+    else:
+        pass
 
     if include_actionability_score is False and 'Actionability Score' in _df.columns:
         _df = _df[[c for c in _df.columns if c != 'Actionability Score']]
