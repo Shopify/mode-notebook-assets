@@ -762,6 +762,7 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     }).bar(
         'Current Value',
         color='lightgray',
+        vmin=0,
     ).render(header=False, index=False)
 
     if title is not None:
