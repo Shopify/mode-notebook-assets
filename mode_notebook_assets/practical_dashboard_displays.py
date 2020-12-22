@@ -778,14 +778,14 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
         _df = _df[[c for c in _df.columns if c != 'Actionability Score']]
 
     _output = _df.style.set_table_styles(
-        [{'selector': '.row_heading',
+        [{'selector': '.',
+          'props': [('all', 'revert')]},
+         {'selector': '.row_heading',
           'props': [('display', 'none')]},
          {'selector': '.col_heading',
           'props': [('display', 'none')]},
          {'selector': '.blank.level0',
           'props': [('display', 'none')]},
-         {'selector': '.table',
-          'props': [('text-align', 'left')]},
          {'selector': '.data',
           'props': [
               ('font-family', 'Arial'),
