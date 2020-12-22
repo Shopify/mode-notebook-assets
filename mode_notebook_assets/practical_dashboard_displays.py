@@ -196,44 +196,6 @@ class MetricEvaluationPipeline:
 
         return _text
 
-    def display_sparkline_time_series(self, metric_name=None):
-
-        df = self.results.dropna()
-
-        fig = go.Figure(
-            layout=go.Layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                hovermode='x',
-            )
-        )
-
-        # plot period values for display
-        fig.add_trace(
-            go.Scatter(
-                x=df.index,
-                y=df.period_value,
-                name=metric_name or 'Period Value',
-                mode='lines',
-                line=dict(color='gray', width=4),
-            )
-        )
-
-        # hide and lock down axes
-        fig.update_xaxes(visible=False, fixedrange=True)
-        fig.update_yaxes(visible=False, fixedrange=True)
-
-        # remove facet/subplot labels
-        fig.update_layout(annotations=[])
-
-        # strip down the rest of the plot
-        fig.update_layout(
-            showlegend=False,
-            plot_bgcolor="white",
-            margin=dict(t=1,l=1,b=1,r=1)
-        )
-
-        return fig
 
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
                                           show_legend=False):
