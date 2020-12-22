@@ -676,7 +676,7 @@ def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', col
         return f'<div style="display: table-row;">{s}</div>'
 
     def cell_div(s):
-        return f'<div style="display: table-cell; padding:{cell_padding}">{s}</div>'
+        return f'<div style="width: {"{}%" % round(100/len(html_elements))}; display: table-cell; padding:{cell_padding}">{s}</div>'
 
     html_element_rows = [html_elements[i*columns:min(i*columns+columns, len(html_elements))] for i in range(0, len(html_elements)//columns+1)]
     html_format = table_div(''.join(row_div(''.join(cell_div(e) for e in l)) for l in html_element_rows))
