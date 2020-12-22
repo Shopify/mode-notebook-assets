@@ -680,7 +680,7 @@ def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', col
 
     html_element_rows = [html_elements[i*columns:min(i*columns+columns, len(html_elements))] for i in range(0, len(html_elements)//columns+1)]
     html_format = table_div(''.join(row_div(''.join(cell_div(e) for e in l)) for l in html_element_rows))
-    return html_format
+    return HTML(html_format)
 
 
 def plotly_div_grid(fig_list: list, **kwargs):
@@ -811,9 +811,10 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     if title is not None:
         _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
 
-    return _output
+    return HTML(_output)
 
 
+@dataclass
 class DatasetEvaluationGenerator:
 
     df: pd.DataFrame
@@ -849,12 +850,14 @@ class DatasetEvaluationGenerator:
     def generate_grouping_set_metric_pipeline_lookup(self, metric_evaluation_pipeline_options=None):
         _data_series_lookup = self.generate_grouping_set_series_lookup()
 
+        _metric_evaluation_pipeline_options = (metric_evaluation_pipeline_options or {})
+
         _pipeline_lookup = {
             key: MetricEvaluationPipeline(
                 series,
                 metric_name=key,
                 measure_name=self.measure_column,
-                **(metric_evaluation_pipeline_options or {}),
+                **_metric_evaluation_pipeline_options,
             ) for key, series in _data_series_lookup.items()
         }
 
@@ -862,11 +865,13 @@ class DatasetEvaluationGenerator:
 
     def generate_actionability_time_series_figures(self, actionability_time_series_options=None):
 
+        _actionability_time_series_options = (actionability_time_series_options or {})
+
         return [
             pipeline.display_actionability_time_series(
                 title=key,
                 metric_name=self.measure_column,
-                **(actionability_time_series_options or {}),
+                **_actionability_time_series_options,
             )
             for key, pipeline in self.generate_grouping_set_metric_pipeline_lookup().items()
         ]
@@ -874,28 +879,35 @@ class DatasetEvaluationGenerator:
     def display_actionability_time_series_grid(self, actionability_time_series_options=None,
                                                plotly_div_grid_options=None):
 
+        _plotly_div_grid_options = (plotly_div_grid_options or {})
+
         return plotly_div_grid(
             self.generate_actionability_time_series_figures(
                 actionability_time_series_options=actionability_time_series_options
             ),
-            **(plotly_div_grid_options or {})
+            **_plotly_div_grid_options
         )
 
     def generate_actionability_summary_records(self, get_current_display_record_options=None):
 
+        _get_current_display_record_options = (get_current_display_record_options or {})
+
         return [
             pipeline.get_current_display_record(
-                **(get_current_display_record_options or {})
-            )
-            for key, pipeline in self.generate_grouping_set_metric_pipeline_lookup()
+                **_get_current_display_record_options
+            ) for key, pipeline in self.generate_grouping_set_metric_pipeline_lookup().items()
         ]
 
-    def display_actionability_summary_records(self, get_current_display_record_options=None,
-                                              html_div_grid_options=None):
+    def display_actionability_summary_records(self,
+                                              get_current_display_record_options=None,
+                                              convert_metric_status_table_to_html_options=None):
 
-        return html_div_grid(
-            self.generate_actionability_summary_records(
-                get_current_display_record_options=get_current_display_record_options
+        _convert_metric_status_table_to_html_options = (convert_metric_status_table_to_html_options or {})
+        return convert_metric_status_table_to_html(
+            pd.DataFrame.from_records(
+                self.generate_actionability_summary_records(
+                    get_current_display_record_options=get_current_display_record_options
+                )
             ),
-            **(html_div_grid_options or {})
+            **_convert_metric_status_table_to_html_options
         )
