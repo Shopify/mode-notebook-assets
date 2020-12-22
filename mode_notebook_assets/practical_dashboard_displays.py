@@ -785,13 +785,21 @@ class DatasetEvaluationGenerator:
     title_format_template: str = None
 
     def generate_grouping_set_series_lookup(self):
+        def convert_to_tuple(x):
+            if isinstance(x, str):
+                return (x, )
+            else:
+                return tuple(x)
+
         _df = self.df.copy().reset_index()
 
-        _grouping_set_actuals = list(
+        _grouping_set_actuals = [
+            convert_to_tuple(x) for x in list(
             _df.groupby(self.grouping_set)
                 .sum()[self.measure_column]
                 .sort_values(ascending=False).index
-        )
+            )
+        ]
 
         _output = {}
 
@@ -803,7 +811,7 @@ class DatasetEvaluationGenerator:
 
             _output[_key] = (
                 _df[(_df[self.grouping_set] == s).all(axis=1)]
-                    .set_index(self.index_column)[self.measure_column]
+                    .groupby(self.index_column).sum()[self.measure_column]
             )
 
         return _output
