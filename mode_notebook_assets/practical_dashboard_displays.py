@@ -235,6 +235,112 @@ class MetricEvaluationPipeline:
 
         return fig
 
+    def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
+                                          show_legend=False):
+        df = self.results.dropna()
+
+        fig = go.Figure(
+            layout=go.Layout(
+                title=title,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                hovermode='x',
+            )
+        )
+        if self.check_outside_of_normal_range:
+            # plot thresholds
+            threshold_value_list = [
+                'high_l2_threshold_value',
+                'high_l1_threshold_value',
+                'normal_range_rolling_baseline',
+                'low_l1_threshold_value',
+                'low_l2_threshold_value',
+            ]
+
+            for colname in threshold_value_list:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df.index,
+                        y=df[colname],
+                        mode='lines',
+                        name=map_threshold_labels_to_name_by_configuration(
+                            colname,
+                            is_higher_good=self.is_higher_good,
+                            is_lower_good=self.is_lower_good,
+                        ),
+                        line=dict(color='lightgray', dash='dash'),
+                        hoverinfo='skip',
+                        showlegend=show_legend,
+                    )
+                )
+
+        # plot actionable periods
+        actionable_periods_df = df.query('general_actionability_score != 0')
+        fig.add_trace(
+            go.Scatter(
+                x=actionable_periods_df.index,
+                y=actionable_periods_df.period_value,
+                mode='markers',
+                name='Actionability',
+                hovertext=[
+                    self.write_actionability_summary(
+                        record,
+                        is_higher_good=self.is_higher_good,
+                        is_lower_good=self.is_lower_good,
+                    ) for record in actionable_periods_df.to_records()],
+                hoverinfo="text",
+                marker=dict(
+                    size=10,
+                    color=[
+                        map_actionability_score_to_color(
+                            score,
+                            is_valence_ambiguous=is_valence_ambiguous,
+                            is_higher_good=self.is_higher_good,
+                            is_lower_good=self.is_lower_good,
+                            good_palette=self.good_palette,
+                            bad_palette=self.bad_palette,
+                            ambiguous_palette=self.ambiguous_palette,
+                        ) for period, score, is_valence_ambiguous in
+                        actionable_periods_df[['general_actionability_score', 'is_valence_ambiguous']].to_records()
+                    ]
+                ),
+                showlegend=show_legend,
+            )
+        )
+
+        # Cover up past actionable periods with neutral color
+        if display_last_n_valence_periods is not None:
+            historical_actionable_periods_df = df.head(len(df.index) - display_last_n_valence_periods).query(
+                'general_actionability_score != 0')
+            fig.add_trace(
+                go.Scatter(
+                    x=historical_actionable_periods_df.index,
+                    y=historical_actionable_periods_df.period_value,
+                    mode='markers',
+                    name='Historical Alerts',
+                    hoverinfo="skip",
+                    marker=dict(
+                        size=10,
+                        color=['lightgray'] * len(historical_actionable_periods_df.period_value),
+                    ),
+                    showlegend=show_legend,
+                )
+            )
+
+        # plot period values
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df.period_value,
+                mode='lines',
+                name=metric_name or 'Period Value',
+                line=dict(color='gray', width=4),
+                showlegend=show_legend,
+            )
+        )
+
+        return fig
+
 
 def create_output_column_for_rolling_period(func: Callable[[pd.Series, int], dict],
                                             df: pd.DataFrame,
