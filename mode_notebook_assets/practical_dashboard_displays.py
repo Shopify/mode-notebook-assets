@@ -791,14 +791,17 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
           'props': [('display', 'none')]},
          {'selector': '.blank.level0',
           'props': [('display', 'none')]},
+         {'selector': 'tr',
+          'props': [('padding-bottom', '100em')]},
          {'selector': '.data',
           'props': [
               ('font-family', 'Arial'),
               ('color', font_color),
               ('border-width', 0),
+              ('padding-bottom', '.25em'),
           ]}]
     ).format({
-        'Current Value': '{:.0f}',
+        'Current Value': '<p style="text-align: center">{:.0f}</p>',
         'Metric': f'<b style="color: {title_color}">{{}}</b>'
     }).bar(
         'Current Value',
