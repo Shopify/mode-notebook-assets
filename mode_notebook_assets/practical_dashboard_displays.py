@@ -667,7 +667,7 @@ def map_threshold_labels_to_name_by_configuration(label: str, is_higher_good=Tru
         return label
 
 
-def html_div_grid(html_elements:list, table_width='98%', columns=3):
+def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', columns=3):
 
     def table_div(s):
         return f'<div style="width:{table_width}; display: table;">{s}</div>'
@@ -676,21 +676,26 @@ def html_div_grid(html_elements:list, table_width='98%', columns=3):
         return f'<div style="display: table-row;">{s}</div>'
 
     def cell_div(s):
-        return f'<div style="display: table-cell;">{s}</div>'
+        return f'<div style="display: table-cell; padding:{cell_padding}">{s}</div>'
 
     html_element_rows = [html_elements[i*columns:min(i*columns+columns, len(html_elements))] for i in range(0, len(html_elements)//columns+1)]
     html_format = table_div(''.join(row_div(''.join(cell_div(e) for e in l)) for l in html_element_rows))
     return html_format
 
 
-def plotly_div_grid(fig_list: list, table_width='98%', columns=3):
+def plotly_div_grid(fig_list: list, **kwargs):
     def handle_element(e):
         if isinstance(e, str):
             return e
         else:
             return e.to_html()
 
-    return HTML(html_div_grid([handle_element(fig) for fig in fig_list], table_width=table_width, columns=columns))
+    return HTML(
+        html_div_grid(
+            [handle_element(fig) for fig in fig_list],
+            **kwargs,
+        )
+    )
 
 
 def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4, 0.25), **kwargs):
