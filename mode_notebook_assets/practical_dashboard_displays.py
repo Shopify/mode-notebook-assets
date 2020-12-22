@@ -577,6 +577,9 @@ def map_actionability_score_to_color(x: float, is_valence_ambiguous=False, is_hi
     _bad_palette = list(bad_palette or px.colors.sequential.Reds[3:-2])
     _ambiguous_palette = list(ambiguous_palette or ['rgb(255,174,66)'])
 
+    if pd.isnull(x):
+        return _ambiguous_palette[-1]
+
     if x == 0:
         return 'rgb(211,211,211)'
     elif is_valence_ambiguous:
