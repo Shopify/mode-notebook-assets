@@ -752,8 +752,8 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
 
 
 def convert_metric_status_table_to_html(df: pd.DataFrame):
-    return round(df.to_html(
+    return df.to_html(
         escape=False,
         index=False,
         header=False
-    ), 2)
+    )
