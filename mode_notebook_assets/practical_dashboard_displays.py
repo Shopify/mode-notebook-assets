@@ -196,7 +196,7 @@ class MetricEvaluationPipeline:
         return _text
 
 
-    def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=4,
+    def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=1,
                                           show_legend=False):
         df = self.results.dropna()
 
