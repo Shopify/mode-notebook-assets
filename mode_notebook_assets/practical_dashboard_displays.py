@@ -132,10 +132,10 @@ class MetricEvaluationPipeline:
 
         return dot(_hex_color)
 
-    def get_current_sparkline(self, periods=20):
-        return sparkline(self.results.tail(periods)['period_value'])
+    def get_current_sparkline(self, periods=20, sparkline_width=2, sparkline_height=.25):
+        return sparkline(self.results.tail(periods)['period_value'], figsize=(sparkline_width, sparkline_height))
 
-    def get_current_display_record(self, sparkline=True, sparkline_periods=20):
+    def get_current_display_record(self, sparkline=True, sparkline_periods=20, sparkline_width=2, sparkline_height=.25):
 
         _output = {'Metric': self.metric_name} if self.metric_name else {}
 
@@ -144,7 +144,11 @@ class MetricEvaluationPipeline:
         _output['Status Dot'] = self.get_current_actionability_status_dot()
         
         if sparkline:
-            _output['Sparkline'] = self.get_current_sparkline(periods=sparkline_periods)
+            _output['Sparkline'] = self.get_current_sparkline(
+                periods=sparkline_periods,
+                sparkline_width=sparkline_width,
+                sparkline_height=sparkline_height,
+            )
 
         return _output
 
