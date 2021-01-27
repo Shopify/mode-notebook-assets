@@ -699,7 +699,7 @@ def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4,
     bio = BytesIO()
     plt.savefig(bio)
     plt.close()
-    html = """<img src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    html = """<img style="width=100%%;height=auto" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
     return html
 
 
@@ -717,7 +717,7 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
     bio = BytesIO()
     plt.savefig(bio, dpi=300)
     plt.close()
-    html = """<img style="height:40px;width:40px;" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    html = """<img style="width=100%%;height=auto" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
     return html
 
 
