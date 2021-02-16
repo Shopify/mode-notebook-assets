@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, List
 
 from dataclasses import dataclass
 
@@ -890,3 +890,36 @@ class DatasetEvaluationGenerator:
             ),
             **_convert_metric_status_table_to_html_options
         )
+
+
+def make_metric_segmentation_grid_display(df: pd.DataFrame, index_column: str, measure_column: str, spec: List[tuple]):
+    """
+    A reusable template for creating a collection of metric segmentation grids that all display different segmentations
+    of the same metric.
+
+    Parameters
+    ----------
+    df: Dataframe, passed as-is to DatasetEvaluationGenerator
+    index_column: date column for grouping, passed as-is to DatasetEvaluationGenerator
+    measure_column: additive fact column to display as metric, passed as-is to DatasetEvaluationGenerator
+    spec: A list of tuples in format (column_name, display_name). For each entry in spec, a segmentation grid
+          will be displayed based on the categorical column `column_name` and will be labelled with the display
+          string `display_name`
+
+    Returns
+    -------
+    An HTML string. Display in a notebook using IPython.display.HTML
+    """
+    return html_div_grid([
+            DatasetEvaluationGenerator(
+                df=df,
+                grouping_set=[colname],
+                index_column=index_column,
+                measure_column=measure_column
+            ).display_actionability_summary_records(
+                convert_metric_status_table_to_html_options={
+                    'title': displayname,
+                },
+            )
+            for colname, displayname in spec
+        ])
