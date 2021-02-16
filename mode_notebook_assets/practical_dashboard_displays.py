@@ -130,7 +130,9 @@ class MetricEvaluationPipeline:
             int(s) for s in _color.replace('rgb(', '').replace(')', '').split(',')
         )
 
-        return dot(_hex_color)
+        _mouse_over_text = self.write_actionability_summary(self.get_current_record(), format_html_text=False)
+
+        return dot(_hex_color, title_text=_mouse_over_text)
 
     def get_current_sparkline(self, periods=20, sparkline_width=2, sparkline_height=.25):
         return sparkline(self.results.tail(periods)['period_value'], figsize=(sparkline_width, sparkline_height))
@@ -152,22 +154,30 @@ class MetricEvaluationPipeline:
 
         return _output
 
-    def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False):
+    def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False,
+                                    format_html_text=True):
 
-        _description = '<b>' + map_actionability_score_to_description(
+        _bold_start_tag = '<b>' if format_html_text else ''
+        _bold_end_tag = '</b>' if format_html_text else ''
+        _line_break_tag = '<br>' if format_html_text else ' - '
+
+        def _bold_string(s):
+            return _bold_start_tag + s + _bold_end_tag
+
+        _description = _bold_start_tag + map_actionability_score_to_description(
             record['general_actionability_score'],
             is_valence_ambiguous=record['is_valence_ambiguous'],
             is_higher_good=is_higher_good,
             is_lower_good=is_lower_good
-        ) + '</b>'
+        ) + _bold_end_tag
 
         if self.check_outside_of_normal_range:
             _normal_range_sign = np.sign(record["normal_range_actionability_score"])
             _high_or_low = (
-                    ("<b>high</b>" if record["normal_range_actionability_score"] > 0 else "<b>low</b>") + \
+                    (_bold_string("high") if record["normal_range_actionability_score"] > 0 else _bold_string("low")) + \
                     " compared with historical ranges"
             )
-            _within_normal_str = "within a <b>normal</b> range based on historical values"
+            _within_normal_str = f"within a {_bold_string('normal')} range based on historical values"
             _is_in_normal_range = record["normal_range_actionability_score"] == 0
             _normal_range_summary = (
                 f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}.')
@@ -178,8 +188,8 @@ class MetricEvaluationPipeline:
             _sudden_change_sign = np.sign(record["sudden_change_actionability_score"])
             _sudden_dip_or_spike_summary = (
                 None if _sudden_change_sign == 0
-                else f'Metric <b>{"increased" if _sudden_change_sign == 1 else "decreased"} '
-                     f'suddenly</b> compared to historical values.'
+                else f'Metric {_bold_start_tag}{"increased" if _sudden_change_sign == 1 else "decreased"} '
+                     f'suddenly{_bold_end_tag} compared to historical values.'
             )
         else:
             _sudden_dip_or_spike_summary = None
@@ -188,13 +198,13 @@ class MetricEvaluationPipeline:
             _change_in_steady_state_long_sign = np.sign(record["change_in_steady_state_long_actionability_score"])
             _change_in_steady_state_long_summary = (
                 None if _change_in_steady_state_long_sign == 0
-                else f'Metric has been <b>{"above" if _change_in_steady_state_long_sign == 1 else "below"}</b> the '
-                     f'historical average for {int(record["current_long_run"])} consecutive periods.'
+                else f'Metric has been {_bold_string("above" if _change_in_steady_state_long_sign == 1 else "below")}'
+                     f'the historical average for {int(record["current_long_run"])} consecutive periods.'
             )
         else:
             _change_in_steady_state_long_summary = None
 
-        _text = "<br>".join([s for s in [_description, _normal_range_summary, _sudden_dip_or_spike_summary,
+        _text = _line_break_tag.join([s for s in [_description, _normal_range_summary, _sudden_dip_or_spike_summary,
                                          _change_in_steady_state_long_summary] if s])
 
         return _text
