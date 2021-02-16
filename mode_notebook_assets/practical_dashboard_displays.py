@@ -703,7 +703,7 @@ def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4,
     return html
 
 
-def dot(color='gray', figsize=(.5, .5), **kwargs):
+def dot(color='gray', figsize=(.5, .5), title_text=None, **kwargs):
 
     fig = plt.figure(figsize=figsize)  # set figure size to be small
     ax = fig.add_subplot(111)
@@ -717,7 +717,7 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
     bio = BytesIO()
     plt.savefig(bio, dpi=300)
     plt.close()
-    html = """<img style="height:40px;width:40px;" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    html = f"""<img title="{'Hover text unavailable.' if title_text is None else title_text}" style="height:40px;width:40px;" src="data:image/png;base64,{base64.b64encode(bio.getvalue()).decode('utf-8')}"/>"""
     return html
 
 
