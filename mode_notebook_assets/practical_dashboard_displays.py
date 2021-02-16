@@ -1,4 +1,4 @@
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Dict
 
 from dataclasses import dataclass
 
@@ -733,9 +733,22 @@ def dot(color='gray', figsize=(.5, .5), title_text=None, **kwargs):
 
 def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_actionability_score=False,
                                         sort_records_by_actionability=False, sort_records_by_value=False,
-                                        limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F'):
+                                        limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F',
+                                        display_current_value_bars=True):
 
     _df = df.copy()
+
+    if 'URL' in _df.columns:
+        _df['Metric'] = _df.apply(
+            func=lambda r: f'''<a href="{r.get('URL', '')}" {'target="_blank"' if r.get('URL') else ''} style="color: {title_color}"><b>{r['Metric']}</b></a>''',
+            axis=1,
+        )
+        _df = _df.drop('URL', axis=1)
+    else:
+        _df['Metric'] = _df.apply(
+            func=lambda r: f'''<b style="color: {title_color}">{r['Metric']}</b>''',
+            axis=1,
+        )
 
     if sort_records_by_actionability and sort_records_by_value:
         _df = _df.sort_values(by=['Actionability Score', 'Current Value'])
@@ -772,12 +785,17 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
           ]}]
     ).format({
         'Current Value': '<p style="text-align: center">{:.0f}</p>',
-        'Metric': f'<b style="color: {title_color}">{{}}</b>'
-    }).bar(
-        'Current Value',
-        color='lightgray',
-        vmin=0,
-    ).render(header=False, index=False)
+        'Metric': '{}',
+    })
+
+    if display_current_value_bars:
+        _output = _output.bar(
+            'Current Value',
+            color='lightgray',
+            vmin=0,
+        )
+
+    _output = _output.render(header=False, index=False)
 
     if title is not None:
         _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
@@ -923,3 +941,42 @@ def make_metric_segmentation_grid_display(df: pd.DataFrame, index_column: str, m
             )
             for colname, displayname in spec
         ])
+
+
+def make_metric_collection_display(metric_specifications: List[dict], title: str = None):
+    """
+    A template function for generating a list of sparkline displays for
+    independent time series.
+
+    Parameters
+    ----------
+    metric_specifications: A list of dictionaries with keys time_series (pd.Series), name (str), and url (optional str)
+    title: A (str) title for the display
+
+    Returns
+    -------
+    HTML string KPI display - render in notebook with IPython.display.HTML
+    """
+    def add_dict_key(d: dict, key: str, value: str):
+        _output = d.copy()
+        _output[key] = value
+        return _output
+
+    return convert_metric_status_table_to_html(pd.DataFrame([
+            # Initialize a MetricEvaluationPipeline
+            add_dict_key(
+                MetricEvaluationPipeline(
+                    s=kpi_dict['time_series'],
+                    metric_name=kpi_dict['name'],
+                    # Instead of the annotated time series chart,
+                    # we're going to ask for the raw info for the
+                    # current period to build up our KPI collection.
+                ).get_current_display_record(),
+                'URL',
+                kpi_dict['url'],
+            )
+            for kpi_dict in metric_specifications
+        ]),
+        title=title,
+        display_current_value_bars=False,
+    )
