@@ -738,9 +738,16 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
 
     _df = df.copy()
 
+    def format_urls(r):
+        _url = r.get('URL')
+        if _url:
+            return f'''<a href="{_url} style="color: {title_color}"><b>{r['Metric']}</b></a>'''
+        else:
+            return f'''<b>{r['Metric']}</b>'''
+
     if 'URL' in _df.columns:
         _df['Metric'] = _df.apply(
-            func=lambda r: f'''<a href="{r.get('URL', '')}" {'target="_blank"' if r.get('URL') else ''} style="color: {title_color}"><b>{r['Metric']}</b></a>''',
+            func=format_urls,
             axis=1,
         )
         _df = _df.drop('URL', axis=1)
@@ -973,7 +980,7 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
                     # current period to build up our KPI collection.
                 ).get_current_display_record(),
                 'URL',
-                kpi_dict['url'],
+                kpi_dict.get('url'),
             )
             for kpi_dict in metric_specifications
         ]),
