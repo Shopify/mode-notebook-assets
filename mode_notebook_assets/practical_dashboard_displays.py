@@ -741,7 +741,7 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     def format_urls(r):
         _url = r.get('URL')
         if _url:
-            return f'''<a href="{_url} style="color: {title_color}"><b>{r['Metric']}</b></a>'''
+            return f'''<a href="{_url}" style="color: {title_color}"><b>{r['Metric']}</b></a>'''
         else:
             return f'''<b>{r['Metric']}</b>'''
 
