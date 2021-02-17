@@ -156,10 +156,27 @@ class MetricEvaluationPipeline:
 
     def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False,
                                     format_html_text=True):
+        """
+        Method turns a row from self._results into a written summary explaining the actionability status
+        of that period. Actionability checks are a single sentence. Summaries might be formatted for HTML
+        rendering (i.e. for Plotly tooltips) or plain text display (i.e. title-tag mouseover tooltips) and
+        formatting is conditional on these two states.
 
+        Parameters
+        ----------
+        record: A row from self._results
+        is_higher_good: boolean valence metadata for metric interpretation
+        is_lower_good: boolean valence metadata for metric interpretation
+        format_html_text: if true, apply HTML formatting and punctuation, else format for plain text display
+
+        Returns
+        -------
+        Textual summary of enabled metric checks for the given period value.
+        """
         _bold_start_tag = '<b>' if format_html_text else ''
         _bold_end_tag = '</b>' if format_html_text else ''
         _line_break_tag = '<br>' if format_html_text else ' - '
+        _sentence_end_punctuation = '.' if format_html_text else ''
 
         def _bold_string(s):
             return _bold_start_tag + s + _bold_end_tag
@@ -180,7 +197,8 @@ class MetricEvaluationPipeline:
             _within_normal_str = f"within a {_bold_string('normal')} range based on historical values"
             _is_in_normal_range = record["normal_range_actionability_score"] == 0
             _normal_range_summary = (
-                f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}.')
+                f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}{_sentence_end_punctuation}'
+            )
         else:
             _normal_range_summary = None
 
@@ -189,7 +207,7 @@ class MetricEvaluationPipeline:
             _sudden_dip_or_spike_summary = (
                 None if _sudden_change_sign == 0
                 else f'Metric {_bold_start_tag}{"increased" if _sudden_change_sign == 1 else "decreased"} '
-                     f'suddenly{_bold_end_tag} compared to historical values.'
+                     f'suddenly{_bold_end_tag} compared to historical values{_sentence_end_punctuation}'
             )
         else:
             _sudden_dip_or_spike_summary = None
@@ -199,7 +217,8 @@ class MetricEvaluationPipeline:
             _change_in_steady_state_long_summary = (
                 None if _change_in_steady_state_long_sign == 0
                 else f'Metric has been {_bold_string("above" if _change_in_steady_state_long_sign == 1 else "below")}'
-                     f'the historical average for {int(record["current_long_run"])} consecutive periods.'
+                     f'the historical average for {int(record["current_long_run"])} '
+                     f'consecutive periods{_sentence_end_punctuation}'
             )
         else:
             _change_in_steady_state_long_summary = None
