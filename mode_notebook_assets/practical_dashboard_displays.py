@@ -764,7 +764,7 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
     elif sort_records_by_actionability:
         _df = _df.sort_values(by=['Actionability Score'])
     else:
-        pass
+        _df = _df.sort_values(by=['Metric'])
 
     if include_actionability_score is False and 'Actionability Score' in _df.columns:
         _df = _df[[c for c in _df.columns if c != 'Actionability Score']]
