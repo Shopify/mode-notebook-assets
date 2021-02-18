@@ -752,6 +752,7 @@ def dot(color='gray', figsize=(.5, .5), title_text=None, **kwargs):
 
 def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_actionability_score=False,
                                         sort_records_by_actionability=False, sort_records_by_value=False,
+                                        sort_records_by_name=False,
                                         limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F',
                                         display_current_value_bars=True):
 
@@ -782,8 +783,10 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
         _df = _df.sort_values(by=['Current Value'])
     elif sort_records_by_actionability:
         _df = _df.sort_values(by=['Actionability Score'])
-    else:
+    elif sort_records_by_name:
         _df = _df.sort_values(by=['Metric'])
+    else:
+        pass
 
     if include_actionability_score is False and 'Actionability Score' in _df.columns:
         _df = _df[[c for c in _df.columns if c != 'Actionability Score']]
