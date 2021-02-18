@@ -767,7 +767,7 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
 
     def format_current_value(r):
         _current_value = r.get('Current Value')
-        if auto_detect_percentages and 0 < _current_value < 1:
+        if 0 < _current_value < 1:
             return '<p style="text-align: center">{:.0f}%</p>'.format(_current_value*100)
         else:
             return '<p style="text-align: center">{:.0f}</p>'.format(_current_value)
@@ -785,10 +785,11 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
             axis=1,
         )
 
-    _df['Current Value'] = _df.apply(
-        func=format_current_value,
-        axis=1,
-    )
+    if auto_detect_percentages:
+        _df['Current Value'] = _df.apply(
+            func=format_current_value,
+            axis=1,
+        )
 
     if sort_records_by_actionability and sort_records_by_value:
         _df = _df.sort_values(by=['Actionability Score', 'Current Value'])
@@ -827,9 +828,10 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
           ]}]
     ).format({
         'Metric': '{}',
+        'Current Value': '{}' if auto_detect_percentages else '<p style="text-align: center">{:.0f}</p>'
     })
 
-    if display_current_value_bars:
+    if display_current_value_bars and not auto_detect_percentages:
         _output = _output.bar(
             'Current Value',
             color='lightgray',
