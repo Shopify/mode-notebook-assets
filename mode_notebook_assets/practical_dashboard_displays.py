@@ -752,7 +752,7 @@ def dot(color='gray', figsize=(.5, .5), title_text=None, **kwargs):
 
 def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_actionability_score=False,
                                         sort_records_by_actionability=False, sort_records_by_value=False,
-                                        sort_records_by_name=False,
+                                        sort_records_by_name=False, auto_detect_percentages=False,
                                         limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F',
                                         display_current_value_bars=True):
 
@@ -765,6 +765,14 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
         else:
             return f'''<b>{r['Metric']}</b>'''
 
+    def format_current_value(r):
+        _current_value = r.get('Current Value')
+        if auto_detect_percentages and 0 < _current_value < 1:
+            return '<p style="text-align: center">{:.0f}%</p>'.format(_current_value*100)
+        else:
+            return '<p style="text-align: center">{:.0f}</p>'.format(_current_value)
+
+
     if 'URL' in _df.columns:
         _df['Metric'] = _df.apply(
             func=format_urls,
@@ -776,6 +784,11 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
             func=lambda r: f'''<b style="color: {title_color}">{r['Metric']}</b>''',
             axis=1,
         )
+
+    _df['Current Value'] = _df.apply(
+        func=format_current_value,
+        axis=1,
+    )
 
     if sort_records_by_actionability and sort_records_by_value:
         _df = _df.sort_values(by=['Actionability Score', 'Current Value'])
@@ -813,7 +826,6 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
               ('padding-bottom', '.25em'),
           ]}]
     ).format({
-        'Current Value': '<p style="text-align: center">{:.0f}</p>',
         'Metric': '{}',
     })
 
@@ -972,7 +984,8 @@ def make_metric_segmentation_grid_display(df: pd.DataFrame, index_column: str, m
         ])
 
 
-def make_metric_collection_display(metric_specifications: List[dict], title: str = None):
+def make_metric_collection_display(metric_specifications: List[dict], title: str = None,
+                                   convert_metric_status_table_to_html_options: dict = None):
     """
     A template function for generating a list of sparkline displays for
     independent time series.
@@ -981,6 +994,7 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
     ----------
     metric_specifications: A list of dictionaries with keys time_series (pd.Series), name (str), and url (optional str)
     title: A (str) title for the display
+    convert_metric_status_table_to_html_options: pass keyword arguments to convert_metric_status_table_to_html
 
     Returns
     -------
@@ -1008,4 +1022,5 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
         ]),
         title=title,
         display_current_value_bars=False,
+        **(convert_metric_status_table_to_html_options or {}),
     )
