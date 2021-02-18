@@ -239,6 +239,11 @@ class MetricEvaluationPipeline:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 hovermode='x',
+                xaxis=dict(
+                    rangeslider=dict(
+                        visible=True,
+                    ),
+                )
             )
         )
         if self.check_outside_of_normal_range:
