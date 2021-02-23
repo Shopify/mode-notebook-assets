@@ -1069,9 +1069,6 @@ class CumulativeTargetAttainmentDisplay:
 
     def __post_init__(self):
 
-        assert isinstance(self.actual.index, pd.DatetimeIndex), \
-            'Actuals time series must have a pd.DatetimeIndex'
-
         # generate target series
         number_of_periods = len(self.target_period_index)
         interpolated_period_target = round(self.target_total / number_of_periods)
