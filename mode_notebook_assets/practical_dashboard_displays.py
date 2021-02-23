@@ -1134,18 +1134,6 @@ class CumulativeTargetAttainmentDisplay:
             )
         )
 
-        # plot cumulative actual values
-        fig.add_trace(
-            go.Scatter(
-                x=self.target_attainment_df.index,
-                y=self.target_attainment_df.actual_cumulative,
-                mode='lines',
-                name='Actual',
-                line=dict(color='gray', width=4),
-                showlegend=show_legend,
-            )
-        )
-
         # plot cumulative target values
         fig.add_trace(
             go.Scatter(
@@ -1154,6 +1142,18 @@ class CumulativeTargetAttainmentDisplay:
                 mode='lines',
                 name='Target',
                 line=dict(color='lightgray', dash='dash'),
+                showlegend=show_legend,
+            )
+        )
+
+        # plot cumulative actual values
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.actual_cumulative,
+                mode='lines',
+                name='Actual',
+                line=dict(color='gray', width=4),
                 showlegend=show_legend,
             )
         )
