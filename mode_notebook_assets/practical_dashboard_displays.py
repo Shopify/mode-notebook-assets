@@ -605,16 +605,17 @@ def outside_of_normal_range(s: pd.Series, minimum_periods=8, rolling_calculation
 
 
 def map_actionability_score_to_color(x: float, is_valence_ambiguous=False, is_higher_good=True, is_lower_good=False,
-                                     good_palette=None, bad_palette=None, ambiguous_palette=None):
+                                     good_palette=None, bad_palette=None, ambiguous_palette=None, neutral_color=None):
     _good_palette = list(good_palette or px.colors.sequential.Greens[3:-2])
     _bad_palette = list(bad_palette or px.colors.sequential.Reds[3:-2])
     _ambiguous_palette = list(ambiguous_palette or ['rgb(255,174,66)'])
+    _neutral_color = neutral_color or 'rgb(211,211,211)'
 
     if pd.isnull(x):
         return _ambiguous_palette[-1]
 
     if x == 0:
-        return 'rgb(211,211,211)'
+        return _neutral_color
     elif is_valence_ambiguous:
         return _ambiguous_palette[
             int(min(np.floor(np.abs(x) * (len(_ambiguous_palette) - 1)), len(_ambiguous_palette) - 1))]
@@ -1026,3 +1027,158 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
         display_current_value_bars=False,
         **(convert_metric_status_table_to_html_options or {}),
     )
+
+#TODO: Remove measure_name; unused
+
+@dataclass
+class CumulativeTargetAttainmentDisplay:
+    """
+    Class for creating a cumulative target attainment display.
+    It answers the question "how are we pacing against our end
+    of period target"? Valence indicators are based on whether
+    we are pacing towards our end of period goal.
+
+    Input series are non-cumulative, but will be transformed
+    to cumulative series for calculation and display.
+
+
+
+    Parameters
+    ----------
+    actual: Non-cumulative time series of actual values (pd.Series)
+    target_total: The total target for the given period (int)
+    target_period_index: A pd.DatetimeIndex representing the target period; to get started, try out pd.date_range
+    """
+
+    actual: pd.Series
+    target_total: int
+    target_period_index: pd.DatetimeIndex
+
+    metric_name: str = None
+
+    minor_attainment_deviation: float = 0
+    major_attainment_deviation: float = .20
+
+    is_higher_good: bool = True
+    is_lower_good: bool = False
+    good_palette: list = None
+    bad_palette: list = None
+    ambiguous_palette: list = None
+
+    def __post_init__(self):
+
+        assert isinstance(self.actual.index, pd.DatetimeIndex), \
+            'Actuals time series must have a pd.DatetimeIndex'
+
+        # generate target series
+        number_of_periods = len(self.target_period_index)
+        interpolated_period_target = round(self.target_total / number_of_periods)
+        period_target_remainder = self.target_total - (interpolated_period_target * number_of_periods)
+
+        current_period = max(self.actual.index)
+        current_period_index = self.actual.index.get_loc(current_period)
+
+        print(current_period)
+        print(current_period_index)
+
+        self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
+            actual=self.actual,
+            actual_cumulative=self.actual.cumsum(),
+            target_interpolated=interpolated_period_target,
+            target_cumulative=lambda df: df.target_interpolated.cumsum() + period_target_remainder,
+            attainment_pacing_proportion=lambda df: df.actual_cumulative/df.target_cumulative,
+            actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
+                lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
+            ),
+            actionability_scores=0,  # initialize as empty; only last period will be calculated
+            actionability_actuals=lambda df: df.actual_cumulative,  # initialize as empty; only last period will be calculated
+        )
+
+        self.target_attainment_df.actionability_actuals[current_period_index] = \
+            self.target_attainment_df.actual_cumulative[current_period_index]
+
+        self.target_attainment_df.actionability_scores[current_period_index] = self.calculate_target_attainment_valence(
+            actual_value=self.target_attainment_df.actual_cumulative[current_period_index],
+            target_value=self.target_attainment_df.target_cumulative[current_period_index],
+        )
+
+    def calculate_target_attainment_valence(self, actual_value, target_value):
+
+        target_deviation = (actual_value-target_value)/target_value
+
+        if np.abs(target_deviation) < self.minor_attainment_deviation:
+            return 0
+        else:
+            # The minimum actionable score is 0.01 (minor deviation) and the
+            # "soft maximum" is 1 (major deviation). Actionability score is based on
+            # where the deviation occurs between the minor and major deviation thresholds.
+            # Scores above 1 are allowed but do not change the output.
+            return np.sign(target_deviation) * (
+                0.01 + (
+                    (np.abs(target_deviation) - self.minor_attainment_deviation)
+                    / (self.major_attainment_deviation - self.minor_attainment_deviation)
+                )
+            )
+
+    def display_cumulative_attainment_chart(self, title=None, show_legend=False):
+
+        fig = go.Figure(
+            layout=go.Layout(
+                title=title,
+                paper_bgcolor='white',
+                plot_bgcolor='white',
+                hoverlabel=go.layout.Hoverlabel(bgcolor='white'),
+                hovermode='x unified',
+            )
+        )
+
+        # plot cumulative actual values
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.actual_cumulative,
+                mode='lines',
+                name='Actual',
+                line=dict(color='gray', width=4),
+                showlegend=show_legend,
+            )
+        )
+
+        # plot cumulative target values
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.target_cumulative,
+                mode='lines',
+                name='Target',
+                line=dict(color='lightgray', dash='dash'),
+                showlegend=show_legend,
+            )
+        )
+
+        # plot actionable periods
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.actionability_actuals,
+                text=self.target_attainment_df.actionability_hover_text,
+                mode='markers',
+                name='Actionability',
+                hoverinfo="x+text",
+                marker=dict(
+                    size=10,
+                    color=[
+                        map_actionability_score_to_color(
+                            score,
+                            good_palette=self.good_palette,
+                            bad_palette=self.bad_palette,
+                            ambiguous_palette=self.ambiguous_palette,
+                            neutral_color='rgba(255,255,255, 0)',
+                        ) for score in self.target_attainment_df.actionability_scores
+                    ]
+                ),
+                showlegend=show_legend,
+            )
+        )
+
+        return fig
