@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import pip
 import os
 import sys
 
@@ -25,9 +26,9 @@ setup(
     url='https://github.com/Shopify/mode-notebook-assets',
     license='MPL-2.0',
     packages=['mode_notebook_assets'],
-#   install_requires=[
-#       'dependency==1.2.3',
-#   ],
+    install_requires=[
+        'plotly==4.14.3',
+    ],
 #   scripts=['bin/a-script'],
     include_package_data=True,
     classifiers=[
