@@ -7,6 +7,7 @@ import numpy as np
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly
 
 import base64
 import matplotlib.pyplot as plt
