@@ -236,9 +236,10 @@ class MetricEvaluationPipeline:
         fig = go.Figure(
             layout=go.Layout(
                 title=title,
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                hovermode='x',
+                paper_bgcolor='white',
+                plot_bgcolor='white',
+                hoverlabel=go.layout.Hoverlabel(bgcolor='white'),
+                hovermode='x unified',
             )
         )
         if self.check_outside_of_normal_range:
@@ -282,7 +283,7 @@ class MetricEvaluationPipeline:
                         is_higher_good=self.is_higher_good,
                         is_lower_good=self.is_lower_good,
                     ) for record in actionable_periods_df.to_records()],
-                hoverinfo="text",
+                hoverinfo="x+text",
                 marker=dict(
                     size=10,
                     color=[
