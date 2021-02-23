@@ -1,5 +1,5 @@
 pandas
-plotly
+plotly==4.14.3
 numpy
 matplotlib
 jupyter
