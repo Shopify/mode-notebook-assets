@@ -1078,10 +1078,8 @@ class CumulativeTargetAttainmentDisplay:
         current_period = max(self.actual.index)
         current_period_index = self.actual.index.get_loc(current_period)
 
-        print(current_period)
-        print(current_period_index)
-
         self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
+            is_current_period=pd.Series([False] * (len(self.actual)-1) + [True], index=self.actual.index),
             actual=self.actual,
             actual_cumulative=self.actual.cumsum(),
             target_interpolated=interpolated_period_target,
@@ -1090,12 +1088,17 @@ class CumulativeTargetAttainmentDisplay:
             actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
                 lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
             ),
-            actionability_scores=0,  # initialize as empty; only last period will be calculated
+            actionability_scores=(
+                lambda df: df.apply(
+                    lambda r: self.calculate_target_attainment_valence(
+                        actual_value=r['actual_cumulative'],
+                        target_value=r['target_cumulative'],
+                    ) if r['is_current_period'] else 0,
+                    axis=1
+                )
+            ),
             actionability_actuals=lambda df: df.actual_cumulative,  # initialize as empty; only last period will be calculated
         )
-
-        self.target_attainment_df.actionability_actuals[current_period_index] = \
-            self.target_attainment_df.actual_cumulative[current_period_index]
 
         self.target_attainment_df.actionability_scores[current_period_index] = self.calculate_target_attainment_valence(
             actual_value=self.target_attainment_df.actual_cumulative[current_period_index],
@@ -1105,7 +1108,6 @@ class CumulativeTargetAttainmentDisplay:
     def calculate_target_attainment_valence(self, actual_value, target_value):
 
         target_deviation = (actual_value-target_value)/target_value
-
         if np.abs(target_deviation) < self.minor_attainment_deviation:
             return 0
         else:
