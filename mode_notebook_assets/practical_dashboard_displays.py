@@ -335,7 +335,7 @@ class MetricEvaluationPipeline:
             )
         )
 
-        return fig
+        return fig.to_html()
 
 
 def create_output_column_for_rolling_period(func: Callable[[pd.Series, int], dict],
