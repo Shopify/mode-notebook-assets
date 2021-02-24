@@ -1180,4 +1180,4 @@ class CumulativeTargetAttainmentDisplay:
             )
         )
 
-        return fig
+        return fig.to_html()
