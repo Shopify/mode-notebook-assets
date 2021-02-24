@@ -1055,7 +1055,8 @@ class CumulativeTargetAttainmentDisplay:
 
     actual: pd.Series
     target_total: int
-    target_period_index: pd.DatetimeIndex
+    period_start_date: str
+    period_end_date: str
 
     metric_name: str = None
 
@@ -1070,18 +1071,28 @@ class CumulativeTargetAttainmentDisplay:
 
     def __post_init__(self):
 
+        self.target_period_index = pd.date_range(start=self.period_start_date, end=self.period_end_date)
+
+        self._cleaned_actual = pd.Series(
+            data=self.actual.values,
+            index=pd.to_datetime(self.actual.index),
+        ).reindex(
+            index=pd.date_range(self.period_start_date, max(self.actual.index)),
+            fill_value=0,
+        )
+
         # generate target series
         number_of_periods = len(self.target_period_index)
         interpolated_period_target = round(self.target_total / number_of_periods)
         period_target_remainder = self.target_total - (interpolated_period_target * number_of_periods)
 
-        current_period = max(self.actual.index)
-        current_period_index = self.actual.index.get_loc(current_period)
+        current_period = max(self._cleaned_actual.index)
+        current_period_index = self._cleaned_actual.index.get_loc(current_period)
 
         self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
-            is_current_period=pd.Series([False] * (len(self.actual)-1) + [True], index=self.actual.index),
-            actual=self.actual,
-            actual_cumulative=self.actual.cumsum(),
+            is_current_period=pd.Series([False] * (len(self._cleaned_actual)-1) + [True], index=self._cleaned_actual.index),
+            actual=self._cleaned_actual,
+            actual_cumulative=self._cleaned_actual.cumsum(),
             target_interpolated=interpolated_period_target,
             target_cumulative=lambda df: df.target_interpolated.cumsum() + period_target_remainder,
             attainment_pacing_proportion=lambda df: df.actual_cumulative/df.target_cumulative,
