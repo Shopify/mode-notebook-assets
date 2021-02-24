@@ -239,8 +239,7 @@ class MetricEvaluationPipeline:
                 title=title,
                 paper_bgcolor='white',
                 plot_bgcolor='white',
-                hoverlabel=go.layout.Hoverlabel(bgcolor='white'),
-                hovermode='x unified',
+                hovermode='x',
             )
         )
         if self.check_outside_of_normal_range:
@@ -1128,8 +1127,7 @@ class CumulativeTargetAttainmentDisplay:
                 title=title,
                 paper_bgcolor='white',
                 plot_bgcolor='white',
-                hoverlabel=go.layout.Hoverlabel(bgcolor='white'),
-                hovermode='x unified',
+                hovermode='x',
             )
         )
 
