@@ -229,9 +229,8 @@ class MetricEvaluationPipeline:
 
         return _text
 
-
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=1,
-                                          show_legend=False):
+                                          show_legend=False, enforce_non_negative_yaxis=True):
         df = self.results.dropna()
 
         fig = go.Figure(
@@ -333,6 +332,9 @@ class MetricEvaluationPipeline:
                 showlegend=show_legend,
             )
         )
+
+        if enforce_non_negative_yaxis:
+            fig.update_yaxes(rangemode='nonnegative')
 
         return fig.to_html()
 
@@ -1120,7 +1122,7 @@ class CumulativeTargetAttainmentDisplay:
                 )
             )
 
-    def display_cumulative_attainment_chart(self, title=None, show_legend=False):
+    def display_cumulative_attainment_chart(self, title=None, show_legend=False, enforce_non_negative_yaxis=True):
 
         fig = go.Figure(
             layout=go.Layout(
@@ -1179,5 +1181,8 @@ class CumulativeTargetAttainmentDisplay:
                 showlegend=show_legend,
             )
         )
+
+        if enforce_non_negative_yaxis:
+            fig.update_yaxes(rangemode='nonnegative')
 
         return fig.to_html()
