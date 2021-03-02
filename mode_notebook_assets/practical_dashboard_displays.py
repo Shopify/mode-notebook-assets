@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, List, Dict
 
 from dataclasses import dataclass
 
@@ -7,6 +7,7 @@ import numpy as np
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly
 
 import base64
 import matplotlib.pyplot as plt
@@ -130,7 +131,9 @@ class MetricEvaluationPipeline:
             int(s) for s in _color.replace('rgb(', '').replace(')', '').split(',')
         )
 
-        return dot(_hex_color)
+        _mouse_over_text = self.write_actionability_summary(self.get_current_record(), format_html_text=False)
+
+        return dot(_hex_color, title_text=_mouse_over_text)
 
     def get_current_sparkline(self, periods=20, sparkline_width=2, sparkline_height=.25):
         return sparkline(self.results.tail(periods)['period_value'], figsize=(sparkline_width, sparkline_height))
@@ -152,25 +155,51 @@ class MetricEvaluationPipeline:
 
         return _output
 
-    def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False):
+    def write_actionability_summary(self, record: dict, is_higher_good=True, is_lower_good=False,
+                                    format_html_text=True):
+        """
+        Method turns a row from self._results into a written summary explaining the actionability status
+        of that period. Actionability checks are a single sentence. Summaries might be formatted for HTML
+        rendering (i.e. for Plotly tooltips) or plain text display (i.e. title-tag mouseover tooltips) and
+        formatting is conditional on these two states.
 
-        _description = '<b>' + map_actionability_score_to_description(
+        Parameters
+        ----------
+        record: A row from self._results
+        is_higher_good: boolean valence metadata for metric interpretation
+        is_lower_good: boolean valence metadata for metric interpretation
+        format_html_text: if true, apply HTML formatting and punctuation, else format for plain text display
+
+        Returns
+        -------
+        Textual summary of enabled metric checks for the given period value.
+        """
+        _bold_start_tag = '<b>' if format_html_text else ''
+        _bold_end_tag = '</b>' if format_html_text else ''
+        _line_break_tag = '<br>' if format_html_text else ' - '
+        _sentence_end_punctuation = '.' if format_html_text else ''
+
+        def _bold_string(s):
+            return _bold_start_tag + s + _bold_end_tag
+
+        _description = _bold_start_tag + map_actionability_score_to_description(
             record['general_actionability_score'],
             is_valence_ambiguous=record['is_valence_ambiguous'],
             is_higher_good=is_higher_good,
             is_lower_good=is_lower_good
-        ) + '</b>'
+        ) + _bold_end_tag
 
         if self.check_outside_of_normal_range:
             _normal_range_sign = np.sign(record["normal_range_actionability_score"])
             _high_or_low = (
-                    ("<b>high</b>" if record["normal_range_actionability_score"] > 0 else "<b>low</b>") + \
+                    (_bold_string("high") if record["normal_range_actionability_score"] > 0 else _bold_string("low")) + \
                     " compared with historical ranges"
             )
-            _within_normal_str = "within a <b>normal</b> range based on historical values"
+            _within_normal_str = f"within a {_bold_string('normal')} range based on historical values"
             _is_in_normal_range = record["normal_range_actionability_score"] == 0
             _normal_range_summary = (
-                f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}.')
+                f'Metric is {_within_normal_str if _is_in_normal_range else (_high_or_low)}{_sentence_end_punctuation}'
+            )
         else:
             _normal_range_summary = None
 
@@ -178,8 +207,8 @@ class MetricEvaluationPipeline:
             _sudden_change_sign = np.sign(record["sudden_change_actionability_score"])
             _sudden_dip_or_spike_summary = (
                 None if _sudden_change_sign == 0
-                else f'Metric <b>{"increased" if _sudden_change_sign == 1 else "decreased"} '
-                     f'suddenly</b> compared to historical values.'
+                else f'Metric {_bold_start_tag}{"increased" if _sudden_change_sign == 1 else "decreased"} '
+                     f'suddenly{_bold_end_tag} compared to historical values{_sentence_end_punctuation}'
             )
         else:
             _sudden_dip_or_spike_summary = None
@@ -188,27 +217,27 @@ class MetricEvaluationPipeline:
             _change_in_steady_state_long_sign = np.sign(record["change_in_steady_state_long_actionability_score"])
             _change_in_steady_state_long_summary = (
                 None if _change_in_steady_state_long_sign == 0
-                else f'Metric has been <b>{"above" if _change_in_steady_state_long_sign == 1 else "below"}</b> the '
-                     f'historical average for {int(record["current_long_run"])} consecutive periods.'
+                else f'Metric has been {_bold_string("above" if _change_in_steady_state_long_sign == 1 else "below")}'
+                     f'the historical average for {int(record["current_long_run"])} '
+                     f'consecutive periods{_sentence_end_punctuation}'
             )
         else:
             _change_in_steady_state_long_summary = None
 
-        _text = "<br>".join([s for s in [_description, _normal_range_summary, _sudden_dip_or_spike_summary,
+        _text = _line_break_tag.join([s for s in [_description, _normal_range_summary, _sudden_dip_or_spike_summary,
                                          _change_in_steady_state_long_summary] if s])
 
         return _text
 
-
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=1,
-                                          show_legend=False):
+                                          show_legend=False, enforce_non_negative_yaxis=True):
         df = self.results.dropna()
 
         fig = go.Figure(
             layout=go.Layout(
                 title=title,
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='white',
+                plot_bgcolor='white',
                 hovermode='x',
             )
         )
@@ -253,7 +282,7 @@ class MetricEvaluationPipeline:
                         is_higher_good=self.is_higher_good,
                         is_lower_good=self.is_lower_good,
                     ) for record in actionable_periods_df.to_records()],
-                hoverinfo="text",
+                hoverinfo="x+text",
                 marker=dict(
                     size=10,
                     color=[
@@ -304,7 +333,10 @@ class MetricEvaluationPipeline:
             )
         )
 
-        return fig
+        if enforce_non_negative_yaxis:
+            fig.update_yaxes(rangemode='nonnegative')
+
+        return fig.to_html()
 
 
 def create_output_column_for_rolling_period(func: Callable[[pd.Series, int], dict],
@@ -576,16 +608,17 @@ def outside_of_normal_range(s: pd.Series, minimum_periods=8, rolling_calculation
 
 
 def map_actionability_score_to_color(x: float, is_valence_ambiguous=False, is_higher_good=True, is_lower_good=False,
-                                     good_palette=None, bad_palette=None, ambiguous_palette=None):
+                                     good_palette=None, bad_palette=None, ambiguous_palette=None, neutral_color=None):
     _good_palette = list(good_palette or px.colors.sequential.Greens[3:-2])
     _bad_palette = list(bad_palette or px.colors.sequential.Reds[3:-2])
     _ambiguous_palette = list(ambiguous_palette or ['rgb(255,174,66)'])
+    _neutral_color = neutral_color or 'rgb(211,211,211)'
 
     if pd.isnull(x):
         return _ambiguous_palette[-1]
 
     if x == 0:
-        return 'rgb(211,211,211)'
+        return _neutral_color
     elif is_valence_ambiguous:
         return _ambiguous_palette[
             int(min(np.floor(np.abs(x) * (len(_ambiguous_palette) - 1)), len(_ambiguous_palette) - 1))]
@@ -703,7 +736,7 @@ def sparkline(data, point_marker='.', point_size=6, point_alpha=1.0, figsize=(4,
     return html
 
 
-def dot(color='gray', figsize=(.5, .5), **kwargs):
+def dot(color='gray', figsize=(.5, .5), title_text=None, **kwargs):
 
     fig = plt.figure(figsize=figsize)  # set figure size to be small
     ax = fig.add_subplot(111)
@@ -717,22 +750,59 @@ def dot(color='gray', figsize=(.5, .5), **kwargs):
     bio = BytesIO()
     plt.savefig(bio, dpi=300)
     plt.close()
-    html = """<img style="height:40px;width:40px;" src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode('utf-8')
+    html = f"""<img title="{'Hover text unavailable.' if title_text is None else title_text}" style="height:40px;width:40px;" src="data:image/png;base64,{base64.b64encode(bio.getvalue()).decode('utf-8')}"/>"""
     return html
 
 
 def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_actionability_score=False,
                                         sort_records_by_actionability=False, sort_records_by_value=False,
-                                        limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F'):
+                                        sort_records_by_name=False, auto_detect_percentages=False,
+                                        limit_rows: int = None, font_color='#3C3C3C', title_color='#2A3F5F',
+                                        display_current_value_bars=True):
 
     _df = df.copy()
 
+    def format_urls(r):
+        _url = r.get('URL')
+        if _url:
+            return f'''<a href="{_url}" target="_blank" style="color: {title_color}"><b>{r['Metric']}</b></a>'''
+        else:
+            return f'''<b>{r['Metric']}</b>'''
+
+    def format_current_value(r):
+        _current_value = r.get('Current Value')
+        if 0 < _current_value < 1:
+            return '<p style="text-align: center">{:.0f}%</p>'.format(_current_value*100)
+        else:
+            return '<p style="text-align: center">{:.0f}</p>'.format(_current_value)
+
+
+    if 'URL' in _df.columns:
+        _df['Metric'] = _df.apply(
+            func=format_urls,
+            axis=1,
+        )
+        _df = _df.drop('URL', axis=1)
+    else:
+        _df['Metric'] = _df.apply(
+            func=lambda r: f'''<b style="color: {title_color}">{r['Metric']}</b>''',
+            axis=1,
+        )
+
+    if auto_detect_percentages:
+        _df['Current Value'] = _df.apply(
+            func=format_current_value,
+            axis=1,
+        )
+
     if sort_records_by_actionability and sort_records_by_value:
-        _df = _df.sort_values(by=['Actionability Score', 'Current Value'])
+        _df = _df.sort_values(by=['Actionability Score', 'Current Value'], ascending=False)
     elif sort_records_by_value:
-        _df = _df.sort_values(by=['Current Value'])
+        _df = _df.sort_values(by=['Current Value'], ascending=False)
     elif sort_records_by_actionability:
-        _df = _df.sort_values(by=['Actionability Score'])
+        _df = _df.sort_values(by=['Actionability Score'], ascending=False)
+    elif sort_records_by_name:
+        _df = _df.sort_values(by=['Metric'])
     else:
         pass
 
@@ -761,13 +831,18 @@ def convert_metric_status_table_to_html(df: pd.DataFrame, title=None, include_ac
               ('padding-bottom', '.25em'),
           ]}]
     ).format({
-        'Current Value': '<p style="text-align: center">{:.0f}</p>',
-        'Metric': f'<b style="color: {title_color}">{{}}</b>'
-    }).bar(
-        'Current Value',
-        color='lightgray',
-        vmin=0,
-    ).render(header=False, index=False)
+        'Metric': '{}',
+        'Current Value': '{}' if auto_detect_percentages else '<p style="text-align: center">{:.0f}</p>'
+    })
+
+    if display_current_value_bars and not auto_detect_percentages:
+        _output = _output.bar(
+            'Current Value',
+            color='lightgray',
+            vmin=0,
+        )
+
+    _output = _output.render(header=False, index=False)
 
     if title is not None:
         _output = f'<h4 style="color: {title_color};">{title}</h4>' + _output
@@ -880,3 +955,245 @@ class DatasetEvaluationGenerator:
             ),
             **_convert_metric_status_table_to_html_options
         )
+
+
+def make_metric_segmentation_grid_display(df: pd.DataFrame, index_column: str, measure_column: str, spec: List[tuple]):
+    """
+    A reusable template for creating a collection of metric segmentation grids that all display different segmentations
+    of the same metric.
+
+    Parameters
+    ----------
+    df: Dataframe, passed as-is to DatasetEvaluationGenerator
+    index_column: date column for grouping, passed as-is to DatasetEvaluationGenerator
+    measure_column: additive fact column to display as metric, passed as-is to DatasetEvaluationGenerator
+    spec: A list of tuples in format (column_name, display_name). For each entry in spec, a segmentation grid
+          will be displayed based on the categorical column `column_name` and will be labelled with the display
+          string `display_name`
+
+    Returns
+    -------
+    An HTML string. Display in a notebook using IPython.display.HTML
+    """
+    return html_div_grid([
+            DatasetEvaluationGenerator(
+                df=df,
+                grouping_set=[colname],
+                index_column=index_column,
+                measure_column=measure_column
+            ).display_actionability_summary_records(
+                convert_metric_status_table_to_html_options={
+                    'title': displayname,
+                },
+            )
+            for colname, displayname in spec
+        ])
+
+
+def make_metric_collection_display(metric_specifications: List[dict], title: str = None,
+                                   convert_metric_status_table_to_html_options: dict = None):
+    """
+    A template function for generating a list of sparkline displays for
+    independent time series.
+
+    Parameters
+    ----------
+    metric_specifications: A list of dictionaries with keys time_series (pd.Series), name (str), and url (optional str)
+    title: A (str) title for the display
+    convert_metric_status_table_to_html_options: pass keyword arguments to convert_metric_status_table_to_html
+
+    Returns
+    -------
+    HTML string KPI display - render in notebook with IPython.display.HTML
+    """
+    def add_dict_key(d: dict, key: str, value: str):
+        _output = d.copy()
+        _output[key] = value
+        return _output
+
+    return convert_metric_status_table_to_html(pd.DataFrame([
+            # Initialize a MetricEvaluationPipeline
+            add_dict_key(
+                MetricEvaluationPipeline(
+                    s=kpi_dict['time_series'],
+                    metric_name=kpi_dict['name'],
+                    # Instead of the annotated time series chart,
+                    # we're going to ask for the raw info for the
+                    # current period to build up our KPI collection.
+                ).get_current_display_record(),
+                'URL',
+                kpi_dict.get('url'),
+            )
+            for kpi_dict in metric_specifications
+        ]),
+        title=title,
+        display_current_value_bars=False,
+        **(convert_metric_status_table_to_html_options or {}),
+    )
+
+#TODO: Remove measure_name; unused
+
+@dataclass
+class CumulativeTargetAttainmentDisplay:
+    """
+    Class for creating a cumulative target attainment display.
+    It answers the question "how are we pacing against our end
+    of period target"? Valence indicators are based on whether
+    we are pacing towards our end of period goal.
+
+    Input series are non-cumulative, but will be transformed
+    to cumulative series for calculation and display.
+
+
+
+    Parameters
+    ----------
+    actual: Non-cumulative time series of actual values (pd.Series)
+    target_total: The total target for the given period (int)
+    target_period_index: A pd.DatetimeIndex representing the target period; to get started, try out pd.date_range
+    """
+
+    actual: pd.Series
+    target_total: int
+    period_start_date: str
+    period_end_date: str
+
+    metric_name: str = None
+
+    minor_attainment_deviation: float = 0
+    major_attainment_deviation: float = .20
+
+    is_higher_good: bool = True
+    is_lower_good: bool = False
+    good_palette: list = None
+    bad_palette: list = None
+    ambiguous_palette: list = None
+
+    def __post_init__(self):
+
+        self.target_period_index = pd.date_range(start=self.period_start_date, end=self.period_end_date)
+
+        self._cleaned_actual = pd.Series(
+            data=self.actual.values,
+            index=pd.to_datetime(self.actual.index),
+        ).reindex(
+            index=pd.date_range(self.period_start_date, max(self.actual.index)),
+            fill_value=0,
+        )
+
+        # generate target series
+        number_of_periods = len(self.target_period_index)
+        interpolated_period_target = round(self.target_total / number_of_periods)
+        period_target_remainder = self.target_total - (interpolated_period_target * number_of_periods)
+
+        current_period = max(self._cleaned_actual.index)
+        current_period_index = self._cleaned_actual.index.get_loc(current_period)
+
+        self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
+            is_current_period=pd.Series([False] * (len(self._cleaned_actual)-1) + [True], index=self._cleaned_actual.index),
+            actual=self._cleaned_actual,
+            actual_cumulative=self._cleaned_actual.cumsum(),
+            target_interpolated=interpolated_period_target,
+            target_cumulative=lambda df: df.target_interpolated.cumsum() + period_target_remainder,
+            attainment_pacing_proportion=lambda df: df.actual_cumulative/df.target_cumulative,
+            actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
+                lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
+            ),
+            actionability_scores=(
+                lambda df: df.apply(
+                    lambda r: self.calculate_target_attainment_valence(
+                        actual_value=r['actual_cumulative'],
+                        target_value=r['target_cumulative'],
+                    ) if r['is_current_period'] else 0,
+                    axis=1
+                )
+            ),
+            actionability_actuals=lambda df: df.actual_cumulative,  # initialize as empty; only last period will be calculated
+        )
+
+        self.target_attainment_df.actionability_scores[current_period_index] = self.calculate_target_attainment_valence(
+            actual_value=self.target_attainment_df.actual_cumulative[current_period_index],
+            target_value=self.target_attainment_df.target_cumulative[current_period_index],
+        )
+
+    def calculate_target_attainment_valence(self, actual_value, target_value):
+
+        target_deviation = (actual_value-target_value)/target_value
+        if np.abs(target_deviation) < self.minor_attainment_deviation:
+            return 0
+        else:
+            # The minimum actionable score is 0.01 (minor deviation) and the
+            # "soft maximum" is 1 (major deviation). Actionability score is based on
+            # where the deviation occurs between the minor and major deviation thresholds.
+            # Scores above 1 are allowed but do not change the output.
+            return np.sign(target_deviation) * (
+                0.01 + (
+                    (np.abs(target_deviation) - self.minor_attainment_deviation)
+                    / (self.major_attainment_deviation - self.minor_attainment_deviation)
+                )
+            )
+
+    def display_cumulative_attainment_chart(self, title=None, show_legend=False, enforce_non_negative_yaxis=True):
+
+        fig = go.Figure(
+            layout=go.Layout(
+                title=title,
+                paper_bgcolor='white',
+                plot_bgcolor='white',
+                hovermode='x',
+            )
+        )
+
+        # plot cumulative target values
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.target_cumulative,
+                mode='lines',
+                name='Target',
+                line=dict(color='lightgray', dash='dash'),
+                showlegend=show_legend,
+            )
+        )
+
+        # plot cumulative actual values
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.actual_cumulative,
+                mode='lines',
+                name='Actual',
+                line=dict(color='gray', width=4),
+                showlegend=show_legend,
+            )
+        )
+
+        # plot actionable periods
+        fig.add_trace(
+            go.Scatter(
+                x=self.target_attainment_df.index,
+                y=self.target_attainment_df.actionability_actuals,
+                text=self.target_attainment_df.actionability_hover_text,
+                mode='markers',
+                name='Actionability',
+                hoverinfo="x+text",
+                marker=dict(
+                    size=10,
+                    color=[
+                        map_actionability_score_to_color(
+                            score,
+                            good_palette=self.good_palette,
+                            bad_palette=self.bad_palette,
+                            ambiguous_palette=self.ambiguous_palette,
+                            neutral_color='rgba(255,255,255, 0)',
+                        ) for score in self.target_attainment_df.actionability_scores
+                    ]
+                ),
+                showlegend=show_legend,
+            )
+        )
+
+        if enforce_non_negative_yaxis:
+            fig.update_yaxes(rangemode='nonnegative')
+
+        return fig.to_html()
