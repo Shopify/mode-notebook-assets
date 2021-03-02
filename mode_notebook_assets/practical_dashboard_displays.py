@@ -230,7 +230,8 @@ class MetricEvaluationPipeline:
         return _text
 
     def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=1,
-                                          show_legend=False, enforce_non_negative_yaxis=True):
+                                          show_legend=False, show_normal_range_thresholds=True,
+                                          enforce_non_negative_yaxis=True, return_html=True):
         df = self.results.dropna()
 
         fig = go.Figure(
@@ -262,7 +263,12 @@ class MetricEvaluationPipeline:
                             is_higher_good=self.is_higher_good,
                             is_lower_good=self.is_lower_good,
                         ),
-                        line=dict(color='lightgray', dash='dash'),
+                        line=dict(
+                            # This is a bit hacky - fix actionability flag indexing
+                            # and move toggle to trace level
+                            color='lightgray' if show_normal_range_thresholds else 'white',
+                            dash='dash'
+                        ),
                         hoverinfo='skip',
                         showlegend=show_legend,
                     )
@@ -336,7 +342,10 @@ class MetricEvaluationPipeline:
         if enforce_non_negative_yaxis:
             fig.update_yaxes(rangemode='nonnegative')
 
-        return fig.to_html()
+        if return_html:
+            return fig.to_html()
+        else:
+            return fig
 
 
 def create_output_column_for_rolling_period(func: Callable[[pd.Series, int], dict],
