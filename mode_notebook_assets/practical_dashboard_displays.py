@@ -236,6 +236,7 @@ class MetricEvaluationPipeline:
                                           annotations: dict = None,
                                           display_last_n_valence_periods=1,
                                           show_legend=False, show_normal_range_thresholds=True,
+                                          high_detail_range_thresholds=True,
                                           enforce_non_negative_yaxis=True, return_html=True,):
 
         if reference_series is not None:
@@ -255,13 +256,19 @@ class MetricEvaluationPipeline:
         )
         if self.check_outside_of_normal_range:
             # plot thresholds
-            threshold_value_list = [
-                'high_l2_threshold_value',
-                'high_l1_threshold_value',
-                'normal_range_rolling_baseline',
-                'low_l1_threshold_value',
-                'low_l2_threshold_value',
-            ]
+            if high_detail_range_thresholds:
+                threshold_value_list = [
+                    'high_l2_threshold_value',
+                    'high_l1_threshold_value',
+                    'normal_range_rolling_baseline',
+                    'low_l1_threshold_value',
+                    'low_l2_threshold_value',
+                ]
+            else:
+                threshold_value_list = [
+                    'high_l1_threshold_value',
+                    'low_l1_threshold_value',
+                ]
 
             for colname in threshold_value_list:
                 fig.add_trace(
