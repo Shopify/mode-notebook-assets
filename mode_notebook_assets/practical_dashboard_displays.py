@@ -38,6 +38,7 @@ class MetricEvaluationPipeline:
     good_palette: list = None
     bad_palette: list = None
     ambiguous_palette: list = None
+    annotations_color=px.colors.sequential.Blues[3],
 
     def __post_init__(self):
 
@@ -229,9 +230,21 @@ class MetricEvaluationPipeline:
 
         return _text
 
-    def display_actionability_time_series(self, title=None, metric_name=None, display_last_n_valence_periods=1,
-                                          show_legend=False, enforce_non_negative_yaxis=True):
-        df = self.results.dropna()
+    def display_actionability_time_series(self, title=None, metric_name=None,
+                                          reference_series: pd.Series = None,
+                                          reference_series_name=None,
+                                          annotations: dict = None,
+                                          display_last_n_valence_periods=1,
+                                          show_legend=False, show_normal_range_thresholds=True,
+                                          high_detail_range_thresholds=True,
+                                          enforce_non_negative_yaxis=True, return_html=True,):
+
+        if reference_series is not None:
+            _reference_series = reference_series.copy()
+            _reference_series.name = 'reference_series'
+            df = pd.concat([self.results, _reference_series], axis=1).dropna()
+        else:
+            df = self.results.dropna()
 
         fig = go.Figure(
             layout=go.Layout(
@@ -243,13 +256,19 @@ class MetricEvaluationPipeline:
         )
         if self.check_outside_of_normal_range:
             # plot thresholds
-            threshold_value_list = [
-                'high_l2_threshold_value',
-                'high_l1_threshold_value',
-                'normal_range_rolling_baseline',
-                'low_l1_threshold_value',
-                'low_l2_threshold_value',
-            ]
+            if high_detail_range_thresholds:
+                threshold_value_list = [
+                    'high_l2_threshold_value',
+                    'high_l1_threshold_value',
+                    'normal_range_rolling_baseline',
+                    'low_l1_threshold_value',
+                    'low_l2_threshold_value',
+                ]
+            else:
+                threshold_value_list = [
+                    'high_l1_threshold_value',
+                    'low_l1_threshold_value',
+                ]
 
             for colname in threshold_value_list:
                 fig.add_trace(
@@ -262,14 +281,21 @@ class MetricEvaluationPipeline:
                             is_higher_good=self.is_higher_good,
                             is_lower_good=self.is_lower_good,
                         ),
-                        line=dict(color='lightgray', dash='dash'),
+                        line=dict(
+                            # This is a bit hacky - fix actionability flag indexing
+                            # and move toggle to trace level
+                            color='lightgray' if show_normal_range_thresholds else 'white',
+                            dash='dash'
+                        ),
                         hoverinfo='skip',
                         showlegend=show_legend,
                     )
                 )
 
         # plot actionable periods
-        actionable_periods_df = df.query('general_actionability_score != 0')
+        _annotated_indices = annotations.keys() if annotations is not None else []
+        actionable_periods_df = df.loc[(df['general_actionability_score'] != 0).values & (~df.index.isin(_annotated_indices))]
+
         fig.add_trace(
             go.Scatter(
                 x=actionable_periods_df.index,
@@ -302,10 +328,40 @@ class MetricEvaluationPipeline:
             )
         )
 
+        if annotations is not None:
+            # plot annotated periods
+            _annotated_indices = annotations.keys() if annotations is not None else []
+            annotated_periods_df = df.loc[df.index.isin(_annotated_indices)]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=annotated_periods_df.index,
+                    y=annotated_periods_df.period_value,
+                    mode='markers',
+                    name='Context',
+                    hovertext=[f'<b>Context</b><br>{s}' for s in list(annotations.values())],
+                    hoverinfo="x+text",
+                    marker=dict(
+                        color='#0080FF',
+                        size=10,
+                    ),
+                    showlegend=show_legend,
+                )
+            )
+
         # Cover up past actionable periods with neutral color
         if display_last_n_valence_periods is not None:
-            historical_actionable_periods_df = df.head(len(df.index) - display_last_n_valence_periods).query(
-                'general_actionability_score != 0')
+
+            _df_head = df.head(len(df.index) - display_last_n_valence_periods)
+            historical_actionable_periods_df = _df_head.loc[
+                (_df_head['general_actionability_score'] != 0).values | (_df_head.index.isin(_annotated_indices))
+            ]
+            historical_actionable_periods_df = historical_actionable_periods_df.assign(
+                overlay_color=[
+                    '#D7D7F3' if b else 'lightgray'
+                    for b in historical_actionable_periods_df.index.isin(_annotated_indices)
+                ]
+            )
             fig.add_trace(
                 go.Scatter(
                     x=historical_actionable_periods_df.index,
@@ -315,8 +371,21 @@ class MetricEvaluationPipeline:
                     hoverinfo="skip",
                     marker=dict(
                         size=10,
-                        color=['lightgray'] * len(historical_actionable_periods_df.period_value),
+                        color=historical_actionable_periods_df.overlay_color,
                     ),
+                    showlegend=show_legend,
+                )
+            )
+
+        if reference_series is not None:
+            # plot reference series
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index,
+                    y=df.reference_series,
+                    mode='lines',
+                    name=reference_series_name or 'Reference Value',
+                    line=dict(color='lightgrey', width=4),
                     showlegend=show_legend,
                 )
             )
@@ -336,7 +405,10 @@ class MetricEvaluationPipeline:
         if enforce_non_negative_yaxis:
             fig.update_yaxes(rangemode='nonnegative')
 
-        return fig.to_html()
+        if return_html:
+            return fig.to_html()
+        else:
+            return fig
 
 
 def create_output_column_for_rolling_period(func: Callable[[pd.Series, int], dict],
