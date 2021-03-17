@@ -42,6 +42,7 @@ class MetricCheckResult:
     def __post_init__(self):
         # tweak inputs
         self.child_metric_check_results = self.child_metric_check_results or []
+        self.valence_score_magnitude = np.abs(self.valence_score)
 
         # validate inputs
         assert (self.priority_score >= 0), 'Priority score is invalid'
@@ -97,7 +98,7 @@ class MetricCheckResult:
         # Choose the preferred record (if applicable) to simplify case logic and return statement
         _higher_override_result = choose_result(max, 'is_override')
         _higher_priority_result = choose_result(min, 'priority_score')
-        _higher_valence_result = choose_result(min, 'valence_score', do_not_allow_ties=False)
+        _higher_valence_result = choose_result(max, 'valence_score_magnitude', do_not_allow_ties=False)
 
         if self.is_override and other.is_override:
             if not _higher_priority_result:
