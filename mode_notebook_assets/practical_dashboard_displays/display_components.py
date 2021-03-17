@@ -6,7 +6,7 @@ import pandas as pd
 from plotly import graph_objects as go
 
 from mode_notebook_assets.practical_dashboard_displays.legacy_helper_functions import map_actionability_score_to_color
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline import MetricEvaluationPipeline
+from mode_notebook_assets.practical_dashboard_displays import MetricEvaluationPipeline
 
 
 def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', columns=3):
