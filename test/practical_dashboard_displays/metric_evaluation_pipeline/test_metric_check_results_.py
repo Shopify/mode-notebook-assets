@@ -24,21 +24,46 @@ def test_priority_preference():
         valence_description='Nothing to see here',
         priority_score=1,
     )
-    priority_2A = MetricCheckResult(
+    priority_2a = MetricCheckResult(
         valence_score=1.2,
         valence_label='Higher',
         valence_description='Nothing to see here',
         priority_score=2,
     )
-    priority_2B = MetricCheckResult(
+    expected = ignore_child_metric_check_results(
+        MetricCheckResult(
+            valence_score=0,
+            valence_label='Normal',
+            valence_description='Nothing to see here',
+            priority_score=1,
+        )
+    )
+    assert priority_1 + priority_2a == expected
+
+
+def test_priority_preference_tie():
+    priority_2a = MetricCheckResult(
+        valence_score=1.2,
+        valence_label='Higher',
+        valence_description='Nothing to see here',
+        priority_score=2,
+    )
+    priority_2b = MetricCheckResult(
         valence_score=1,
         valence_label='High',
         valence_description='Nothing to see here',
         priority_score=2,
     )
-
-    assert priority_1 + priority_2A == ignore_child_metric_check_results(priority_1)
-    assert priority_2A + priority_2B == ignore_child_metric_check_results(priority_2A)
+    expected = ignore_child_metric_check_results(
+        MetricCheckResult(
+            valence_score=1.2,
+            valence_label='Higher',
+            valence_description='Nothing to see here',
+            priority_score=2,
+            metric_check_label='Combined Metric Check',
+        )
+    )
+    assert priority_2a + priority_2b == expected
 
 
 def test_override_preference():
@@ -53,13 +78,13 @@ def test_override_preference():
         valence_label='Normal',
         valence_description='Nothing to see here',
     )
-    ambiguous_override_result = MetricCheckResult(
-        valence_score=0,
-        valence_label='Ambiguous',
-        valence_description='Nothing to see here',
-        metric_check_label='Combined Metric Check',
-        is_override=True,
-        is_ambiguous=True,
+    expected = ignore_child_metric_check_results(
+        MetricCheckResult(
+            valence_score=0,
+            valence_label='Normal',
+            valence_description='Nothing to see here',
+            is_override=True,
+        )
     )
 
-    assert override + not_override == ignore_child_metric_check_results(override)
+    assert override + not_override == expected
