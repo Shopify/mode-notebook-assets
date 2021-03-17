@@ -56,7 +56,7 @@ class MetricCheckResult:
         assert (self.priority_score >= 0), 'Priority score is invalid'
 
         for r in self.child_metric_check_results:
-            assert (r.child_metric_check_results is None), 'Arbitrary nesting of MetricCheckResult is forbidden.'
+            assert (r.child_metric_check_results == []), 'Arbitrary nesting of MetricCheckResult is forbidden.'
 
     def __add__(self, other: 'MetricCheckResult'):
         """
