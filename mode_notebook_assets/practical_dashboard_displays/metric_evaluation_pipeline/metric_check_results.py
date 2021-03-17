@@ -3,6 +3,8 @@ from typing import List, Callable, Union
 
 import numpy as np
 
+from mode_notebook_assets.practical_dashboard_displays.helper_functions import functional_setattr
+
 UNSPECIFIED_METRIC_CHECK_LABEL = 'Unspecified Metric Check'
 
 COMBINED_METRIC_CHECK_LABEL = 'Combined Metric Check'
@@ -124,19 +126,19 @@ class MetricCheckResult:
                     child_metric_check_results=_combined_child_metric_check_results,
                 )
             else:
-                return setattr(
+                return functional_setattr(
                     _higher_priority_result,
                     'child_metric_check_results',
                     _combined_child_metric_check_results
                 )
         elif _higher_override_result:
-            return setattr(
+            return functional_setattr(
                 _higher_override_result,
                 'child_metric_check_results',
                 _combined_child_metric_check_results
             )
         elif _higher_priority_result:
-            return setattr(
+            return functional_setattr(
                 _higher_priority_result,
                 'child_metric_check_results',
                 _combined_child_metric_check_results

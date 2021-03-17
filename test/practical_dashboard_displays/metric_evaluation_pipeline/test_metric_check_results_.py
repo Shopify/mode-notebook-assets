@@ -1,10 +1,12 @@
 import pytest
+
+from mode_notebook_assets.practical_dashboard_displays.helper_functions import functional_setattr
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results import \
     MetricCheckResult
 
 
 def ignore_child_metric_check_results(mcr: MetricCheckResult) -> MetricCheckResult:
-    return setattr(mcr, 'child_metric_check_results', [])
+    return functional_setattr(mcr, 'child_metric_check_results', [])
 
 
 def test_init_metric_check_result():
