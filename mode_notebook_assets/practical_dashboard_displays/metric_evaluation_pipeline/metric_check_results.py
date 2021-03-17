@@ -30,12 +30,12 @@ class MetricCheckResult:
     child_metric_check_results: Track *original* (never combined) MetricCheckResults to avoid information loss.
     """
     valence_score: float
-    priority_score: int
-    is_override: bool
-    is_ambiguous: bool
-    metric_check_label: str
     valence_label: str
     valence_description: str
+    priority_score: int = 3
+    is_override: bool = False
+    is_ambiguous: bool = False
+    metric_check_label: str = 'Unspecified Metric Check'
     text_separator: str = ' - '
     child_metric_check_results: List[Union['MetricCheckResult', None]] = None
 
