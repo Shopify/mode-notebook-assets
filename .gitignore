@@ -1,2 +1,4 @@
 mode_notebook_assets.egg-info/
 mode_notebook_assets/__pycache__/
+mode_notebook_assets/practical_dashboard_displays/__pycache__/
+mode_notebook_assets/practical_dashboard_displays/metric_evaluation_pipeline/__pycache__/
