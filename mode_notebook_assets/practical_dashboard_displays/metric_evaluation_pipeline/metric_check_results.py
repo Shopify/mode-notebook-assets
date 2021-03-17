@@ -92,9 +92,12 @@ class MetricCheckResult:
         # Pre-compute combined attributes (some may be ignored)
         _combined_child_metric_check_results = self.child_metric_check_results + other.child_metric_check_results
         _combined_valence_description = (
-                self.valence_description +
-                self.text_separator +
-                other.valence_description
+            self.text_separator.join(
+                set(
+                    self.valence_description.split(sep=self.text_separator)
+                    + other.valence_description.split(sep=other.text_separator)
+                )
+            )
         )
 
         _combined_valence_score = max(self.valence_score, other.valence_score)
@@ -118,11 +121,7 @@ class MetricCheckResult:
                     is_ambiguous=True,
                     metric_check_label=COMBINED_METRIC_CHECK_LABEL,
                     valence_label=AMBIGUOUS_VALENCE_LABEL,
-                    valence_description=(
-                            self.valence_description +
-                            self.text_separator +
-                            other.valence_description
-                    ),
+                    valence_description=_combined_valence_description,
                     child_metric_check_results=_combined_child_metric_check_results,
                 )
             else:
