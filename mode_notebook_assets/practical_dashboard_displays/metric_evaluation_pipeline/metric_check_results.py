@@ -3,6 +3,12 @@ from typing import List, Callable, Union
 
 import numpy as np
 
+UNSPECIFIED_METRIC_CHECK_LABEL = 'Unspecified Metric Check'
+
+COMBINED_METRIC_CHECK_LABEL = 'Combined Metric Check'
+
+AMBIGUOUS_VALENCE_LABEL = 'Ambiguous'
+
 
 @dataclass
 class MetricCheckResult:
@@ -35,7 +41,7 @@ class MetricCheckResult:
     priority_score: int = 3
     is_override: bool = False
     is_ambiguous: bool = False
-    metric_check_label: str = 'Unspecified Metric Check'
+    metric_check_label: str = UNSPECIFIED_METRIC_CHECK_LABEL
     text_separator: str = ' - '
     child_metric_check_results: List[Union['MetricCheckResult', None]] = None
 
@@ -76,6 +82,11 @@ class MetricCheckResult:
             else:
                 return func(self, other, key=lambda r: getattr(r, attr_name))
 
+        # Choose the preferred record (if applicable) to simplify case logic and return statement
+        _higher_override_result = choose_result(max, 'is_override')
+        _higher_priority_result = choose_result(min, 'priority_score')
+        _higher_valence_result = choose_result(max, 'valence_score_magnitude', do_not_allow_ties=False)
+
         # Pre-compute combined attributes (some may be ignored)
         _combined_child_metric_check_results = self.child_metric_check_results + other.child_metric_check_results
         _combined_valence_description = (
@@ -83,11 +94,7 @@ class MetricCheckResult:
                 self.text_separator +
                 other.valence_description
         )
-        _combined_metric_check_label = (
-                self.metric_check_label +
-                self.text_separator +
-                other.metric_check_label
-        )
+
         _combined_valence_score = max(self.valence_score, other.valence_score)
         _combined_priority_score = min(self.priority_score, other.priority_score)
         _combined_is_ambiguous = not(
@@ -95,10 +102,10 @@ class MetricCheckResult:
                 and np.sign(self.valence_score) == np.sign(other.valence_score)
         )
 
-        # Choose the preferred record (if applicable) to simplify case logic and return statement
-        _higher_override_result = choose_result(max, 'is_override')
-        _higher_priority_result = choose_result(min, 'priority_score')
-        _higher_valence_result = choose_result(max, 'valence_score_magnitude', do_not_allow_ties=False)
+        _combined_valence_label = (
+            AMBIGUOUS_VALENCE_LABEL if _combined_is_ambiguous
+            else _higher_valence_result.valence_label
+        )
 
         if self.is_override and other.is_override:
             if not _higher_priority_result:
@@ -107,8 +114,8 @@ class MetricCheckResult:
                     priority_score=min(self.priority_score, other.priority_score),
                     is_override=True,
                     is_ambiguous=True,
-                    metric_check_label='Combined Metric Check',
-                    valence_label='Ambiguous',
+                    metric_check_label=COMBINED_METRIC_CHECK_LABEL,
+                    valence_label=AMBIGUOUS_VALENCE_LABEL,
                     valence_description=(
                             self.valence_description +
                             self.text_separator +
@@ -138,9 +145,8 @@ class MetricCheckResult:
             return MetricCheckResult(
                 valence_score=_combined_valence_score,
                 priority_score=_combined_priority_score,
-                is_override=self.is_override,
                 is_ambiguous=_combined_is_ambiguous,
-                metric_check_label=self.metric_check_label,
-                valence_label=_higher_valence_result.valence_label,
+                metric_check_label=COMBINED_METRIC_CHECK_LABEL,
+                valence_label=_combined_valence_label,
                 valence_description=_combined_valence_description
             )
