@@ -32,6 +32,10 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
     is_higher_better: bool = True
     is_lower_better: bool = True
 
+    def __post_init__(self):
+        _threshold_list = [self.threshold_1, self.threshold_2, self.threshold_3, self.threshold_4]
+        assert _threshold_list == sorted(_threshold_list), 'Thresholds must be in increasing order.'
+
     def run(self, s: pd.Series) -> pd.Series:
         def map_value_to_result(x: float) -> MetricCheckResult:
             if x <= self.threshold_1:

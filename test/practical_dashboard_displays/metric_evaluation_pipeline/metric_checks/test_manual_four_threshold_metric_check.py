@@ -22,13 +22,13 @@ def test_invalid_configuration():
     # Initialization should fail if the thresholds
     # aren't in sorted order.
     with pytest.raises(AssertionError):
-        for _set in permutations([10, 20, 30, 40], r=4):
-            if _set != _set.sort():
+        for _theshold_permutations in permutations([10, 20, 30, 40], r=4):
+            if _theshold_permutations != sorted(_theshold_permutations):
                 assert ManualFourThresholdMetricCheck(
-                    threshold_1=_set[0],
-                    threshold_2=_set[1],
-                    threshold_3=_set[2],
-                    threshold_4=_set[3],
+                    threshold_1=_theshold_permutations[0],
+                    threshold_2=_theshold_permutations[1],
+                    threshold_3=_theshold_permutations[2],
+                    threshold_4=_theshold_permutations[3],
                 )
 
 
