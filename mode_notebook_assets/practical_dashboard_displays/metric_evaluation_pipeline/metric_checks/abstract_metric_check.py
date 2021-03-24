@@ -66,7 +66,7 @@ class AbstractMetricCheck(ABC):
                                               'applied to numeric Series'
 
             assert (
-                not _series.loc[_series.first_valid_index(), _series.last_valid_index()].isnull().values.any()
+                not _series.loc[_series.first_valid_index(): _series.last_valid_index()].isnull().values.any()
             ), (
                 'Numeric series may have leading or trailing null values to represent missing or non-applicable '
                 'data points. However, values for the series should otherwise be non-Null.'
@@ -100,8 +100,8 @@ class AbstractMetricCheck(ABC):
         None
         """
 
-        assert (s.index == _output.index), 'MetricCheck should not change the index of the series. ' \
-                                           'Indexing must be handled by the MetricEvaluationPipeline.'
+        assert s.index.equals(_output.index), 'MetricCheck should not change the index of the series. ' \
+                                              'Indexing must be handled by the MetricEvaluationPipeline.'
         assert (isinstance(_output, pd.Series)), 'MetricCheck output must be a Pandas Series.'
         for result in _output.values:
             assert issubclass(result.__class__, MetricCheckResult), 'All elements of MetricCheck output ' \

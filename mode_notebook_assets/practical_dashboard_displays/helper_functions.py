@@ -35,7 +35,7 @@ def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_
     else:
         _normalized_score = np.abs(_raw_score)
 
-    _truncated_score = np.ceil([np.floor([_normalized_score, -1]), 1])
+    _truncated_score = min(max(_normalized_score, -1), 1)
 
     return _truncated_score
 
@@ -106,7 +106,7 @@ def map_sign_to_string(x: float, labels: list = None):
     else:
         _labels = labels
 
-    assert len(_labels) == 5, 'Mapping valence scores to labels requires 5 labels.'
+    assert len(_labels) == 3, 'Mapping signs to strings requires 3 labels.'
 
     if x < 0:
         return _labels[0]

@@ -33,4 +33,5 @@ def test_invalid_configuration():
 
 
 def test_run_check():
-    assert TEST_CONFIGURATION.run(pd.Series([25, 25, 5, 15, 35, 45])), 'Run method should finish executing.'
+    assert isinstance(TEST_CONFIGURATION.run(pd.Series([25, 25, 5, 15, 35, 45])), pd.Series), \
+        'Run method should finish executing.'
