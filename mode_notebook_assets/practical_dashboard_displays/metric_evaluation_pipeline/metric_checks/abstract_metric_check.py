@@ -34,6 +34,13 @@ class AbstractMetricCheck:
     @staticmethod
     def _validate_inputs(s: pd.Series, *args) -> None:
         """
+        Validates all input series. The first series is assumed to be the
+        main metric series, and it also accepts an arbitrary number of
+        other series. Example usage is;
+
+        ```
+        self._validate_inputs(s, annotations, target)
+        ```
 
         Parameters
         ----------
@@ -42,7 +49,7 @@ class AbstractMetricCheck:
 
         Returns
         -------
-
+        None
         """
         def _assert_single_contiguous_dense_sequence(_series: pd.Series) -> None:
             """
@@ -103,25 +110,24 @@ class AbstractMetricCheck:
                                                                     'must inherit from the MetricCheckResult'
 
     @abstractmethod
-    def run(self, s: pd.Series, annotations: OptionalSeries = None, target: OptionalSeries = None,
-            forecast: OptionalSeries = None, reference: OptionalSeries = None,
-            injected_results: OptionalSeries = None) -> pd.Series:
+    def run(self, s: pd.Series) -> pd.Series:
         """
         An abstract implementation of MetricCheck.run(). This method defines the processing
-        logic of the MetricCheck. This abstract example includes *all* valid input names. The majority
-        or MetricChecks will only need `s` to run. Do not include unnecessary inputs in your MetricCheck.
+        logic of the MetricCheck. The majority of MetricChecks will only need `s` to run.
+        Some may use optional additional parameters (see list below).
 
         Make sure to validate inputs and outputs using the base class methods.
 
-        Parameters
+        Required Parameters
         ----------
         s: pd.Series, the numeric metric to be analyzed
+
+        Optional Parameters for Subclass Methods
+        ----------
         annotations: pd.Series, a text series of explanations that override other metrics
         target: pd.Series, a numeric series of quantitative goals
         forecast: pd.Series, a numeric series of quantitative expectations
         reference: pd.Series, a numeric series of another relevant metric to compare against
-        injected_results: pd.Series, a MetricCheckResult series for related checks
-                          e.g. interpreting checks from related metrics
 
         Returns
         -------
@@ -129,7 +135,7 @@ class AbstractMetricCheck:
         """
 
         # Validate inputs
-        self._validate_inputs(s, annotations, target, forecast, reference, injected_results)
+        self._validate_inputs(s)
 
         # Index should be the same as s, and values should be MetricCheckResults
         _output = pd.Series()
