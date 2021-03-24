@@ -40,10 +40,12 @@ def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_
     return _truncated_score
 
 
-def map_valence_score_to_label(valence_score: float, labels: list = None) -> str:
+def map_score_to_string(valence_score: float, labels: list = None) -> str:
     """
     Maps an valence score (float greater than or equal to -1
     and less than or equal to 1) to a label.
+
+    Can also be used for mapping descriptions or adjectives.
 
     Parameters
     ----------
