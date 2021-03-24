@@ -32,7 +32,7 @@ class AbstractMetricCheck:
     """
 
     @staticmethod
-    def _validate_input_series(s: pd.Series, *args) -> None:
+    def _validate_inputs(s: pd.Series, *args) -> None:
         """
 
         Parameters
@@ -128,5 +128,13 @@ class AbstractMetricCheck:
         A pandas series of MetricCheckResult objects
         """
 
+        # Validate inputs
+        self._validate_inputs(s, annotations, target, forecast, reference, injected_results)
+
         # Index should be the same as s, and values should be MetricCheckResults
-        return pd.Series()
+        _output = pd.Series()
+
+        # Validate outputs
+        self._validate_output(s, _output)
+
+        return _output
