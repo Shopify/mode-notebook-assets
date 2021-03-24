@@ -11,9 +11,7 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 OptionalSeries = Union[pd.Series, None]
 
 
-@ABC
-@dataclass
-class AbstractMetricCheck:
+class AbstractMetricCheck(ABC):
     """
     The AbstractMetricCheck implements the MetricCheck design pattern.
     To create your own MetricCheck:
