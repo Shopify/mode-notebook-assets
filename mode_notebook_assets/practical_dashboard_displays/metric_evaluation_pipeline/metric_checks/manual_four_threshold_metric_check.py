@@ -30,7 +30,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
     threshold_3: float
     threshold_4: float
     is_higher_better: bool = True
-    is_lower_better: bool = True
+    is_lower_better: bool = False
 
     def __post_init__(self):
         _threshold_list = [self.threshold_1, self.threshold_2, self.threshold_3, self.threshold_4]
@@ -41,9 +41,9 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
             if x <= self.threshold_1:
                 _raw_score = -1
             elif x <= self.threshold_2:
-                _raw_score = -0.1 + (self.threshold_2 - x) / (self.threshold_2 - self.threshold_1)
+                _raw_score = -0.01 - (self.threshold_2 - x) / (self.threshold_2 - self.threshold_1)
             elif x >= self.threshold_3:
-                _raw_score = 0.1 + (x - self.threshold_3) / (self.threshold_4 - self.threshold_3)
+                _raw_score = 0.01 + (x - self.threshold_3) / (self.threshold_4 - self.threshold_3)
             elif x >= self.threshold_4:
                 _raw_score = 1
             else:

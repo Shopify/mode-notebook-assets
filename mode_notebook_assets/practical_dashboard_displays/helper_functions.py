@@ -73,10 +73,10 @@ def map_score_to_string(valence_score: float, labels: list = None) -> str:
         return _labels[0]
     elif valence_score < 0:
         return _labels[1]
-    elif valence_score > 0:
-        return _labels[3]
     elif valence_score >= 1:
         return _labels[4]
+    elif valence_score > 0:
+        return _labels[3]
     else:
         return _labels[2]
 
@@ -97,11 +97,9 @@ def map_sign_to_string(x: float, labels: list = None):
     """
     if labels is None:
         _labels = [
-            'Unusually Bad',
-            'Worse than Normal',
-            'In a Normal Range',
-            'Better than Normal',
-            'Unusually Good',
+            'Lower than',
+            'Within the range of',
+            'Higher than',
         ]
     else:
         _labels = labels
