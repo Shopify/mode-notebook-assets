@@ -127,7 +127,6 @@ class AbstractMetricCheck:
         -------
         A pandas series of MetricCheckResult objects
         """
-        def generate_check_results() -> List[MetricCheckResult]:
-            return []
 
+        # Index should be the same as s, and values should be MetricCheckResults
         return pd.Series()
