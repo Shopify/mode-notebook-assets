@@ -9,9 +9,9 @@ def functional_setattr(__obj, __name, __value):
     return __obj
 
 
-def normalize_actionability_score(_raw_score: float, is_higher_better: bool, is_lower_better: bool):
+def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_better: bool):
     """
-    Normalize a raw actionability score. Normalized actionability scores are floats between -1 and 1
+    Normalize a raw valence score. Normalized valence scores are floats between -1 and 1
     where the sign of the score represents the valence (i.e. positive is good and negative is bad).
     Scores whose absolute value is bigger than 1 are truncated because larger absolute values are
     not meaningful in the Practical Dashboards 4-threshold valence score system.
@@ -40,14 +40,14 @@ def normalize_actionability_score(_raw_score: float, is_higher_better: bool, is_
     return _truncated_score
 
 
-def map_actionability_score_to_label(valence_score: float, labels: list = None) -> str:
+def map_valence_score_to_label(valence_score: float, labels: list = None) -> str:
     """
-    Maps an actionability score (float greater than or equal to -1
+    Maps an valence score (float greater than or equal to -1
     and less than or equal to 1) to a label.
 
     Parameters
     ----------
-    valence_score: An actionability score
+    valence_score: An valence score
     labels: A list of labels, length must equal 5
 
     Returns
