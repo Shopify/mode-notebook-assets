@@ -38,3 +38,42 @@ def normalize_actionability_score(_raw_score: float, is_higher_better: bool, is_
     _truncated_score = np.ceil([np.floor([_normalized_score, -1]), 1])
 
     return _truncated_score
+
+
+def map_actionability_score_to_label(valence_score: float, labels: list = None) -> str:
+    """
+    Maps an actionability score (float greater than or equal to -1
+    and less than or equal to 1) to a label.
+
+    Parameters
+    ----------
+    valence_score: An actionability score
+    labels: A list of labels, length must equal 5
+
+    Returns
+    -------
+    A label string
+    """
+    if labels is None:
+        _labels = [
+            'Unusually Bad',
+            'Worse than Normal',
+            'In a Normal Range',
+            'Better than Normal',
+            'Unusually Good',
+        ]
+    else:
+        _labels = labels
+
+    assert len(_labels) == 5, 'Mapping valence scores to labels requires 5 labels.'
+
+    if valence_score <= -1:
+        return _labels[0]
+    elif valence_score < 0:
+        return _labels[1]
+    elif valence_score > 0:
+        return _labels[3]
+    elif valence_score >= 1:
+        return _labels[4]
+    else:
+        return _labels[2]
