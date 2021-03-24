@@ -28,7 +28,7 @@ def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_
     """
     if is_higher_better and not is_lower_better:
         _normalized_score = _raw_score
-    elif is_higher_better and not is_lower_better:
+    elif not is_higher_better and is_lower_better:
         _normalized_score = _raw_score * -1
     elif not is_higher_better and not is_lower_better:
         _normalized_score = np.abs(_raw_score) * -1
