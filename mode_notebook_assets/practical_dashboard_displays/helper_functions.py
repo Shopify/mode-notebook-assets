@@ -9,7 +9,7 @@ def functional_setattr(__obj, __name, __value):
     return __obj
 
 
-def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_better: bool):
+def normalize_valence_score(_raw_score: float, is_higher_better: bool, is_lower_better: bool) -> float:
     """
     Normalize a raw valence score. Normalized valence scores are floats between -1 and 1
     where the sign of the score represents the valence (i.e. positive is good and negative is bad).
@@ -79,3 +79,38 @@ def map_score_to_string(valence_score: float, labels: list = None) -> str:
         return _labels[4]
     else:
         return _labels[2]
+
+
+def map_sign_to_string(x: float, labels: list = None):
+    """
+    Maps a sign to a string. If negative, first label;
+    if zero, second label; if positive, third label.
+
+    Parameters
+    ----------
+    x: A number
+    labels: A list of labels, length must equal 3
+
+    Returns
+    -------
+    A label string
+    """
+    if labels is None:
+        _labels = [
+            'Unusually Bad',
+            'Worse than Normal',
+            'In a Normal Range',
+            'Better than Normal',
+            'Unusually Good',
+        ]
+    else:
+        _labels = labels
+
+    assert len(_labels) == 5, 'Mapping valence scores to labels requires 5 labels.'
+
+    if x < 0:
+        return _labels[0]
+    elif x > 0:
+        return _labels[2]
+    else:
+        return _labels[1]
