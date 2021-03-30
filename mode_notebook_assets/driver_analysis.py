@@ -1,10 +1,19 @@
 from dataclasses import dataclass
 import pandas as pd
 import plotly.express as px
-
+import plotly.graph_objects as go
 
 @dataclass
 class RecentPeriodDriverAnalysis:
+    """
+    This class implements metrics and visualizations
+    for analyzing how a particular category is driving
+    changes in a higher level metric.
+
+    For example, we might want to look at which lead
+    sources are driving changes in opportunity
+    creation.
+    """
     data_frame: pd.DataFrame
     date_column: str
     metric_column: str
@@ -49,16 +58,28 @@ class RecentPeriodDriverAnalysis:
             ).reset_index().to_dict(orient='records')[-1]
 
         self.group_dfs = group_dfs
-
-    def plot_period_deviations(self):
-
-        group_deviations_df = pd.DataFrame.from_dict(
+        self.group_deviations_df = pd.DataFrame.from_dict(
             self.group_dfs,
             orient='index',
         )
 
+    def plot_period_deviations(self) -> go.Figure:
+        """
+        Creates a plot comparing absolute deviation from the
+        rolling average vs. the relative deviation from the
+        rolling average. Larger absolute deviations are bigger
+        drivers of top-line trends, whereas larger relative
+        deviations represent bigger deviations from normal.
+
+        This visualization helps identify drivers and anomalies
+        and put them into perspective based on impact.
+
+        Returns
+        -------
+        Plotly Figure
+        """
         return px.scatter(
-            data_frame=group_deviations_df.reset_index(),
+            data_frame=self.group_deviations_df.reset_index(),
             x='vs_rolling_avg_absolute',
             y='vs_rolling_avg_relative',
             text='index',
