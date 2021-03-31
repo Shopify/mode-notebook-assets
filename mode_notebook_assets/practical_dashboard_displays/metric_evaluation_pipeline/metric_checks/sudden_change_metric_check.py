@@ -56,7 +56,6 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
         period_change = s - s.shift(1)
 
         if (self.is_rolling_window):
-            # GF Note: Check on the min_periods argument here.
             mean_of_pop_differences = abs(s - period_change).\
                 rolling(self.rolling_periods, min_periods=self.minimum_periods).mean()
         else:
