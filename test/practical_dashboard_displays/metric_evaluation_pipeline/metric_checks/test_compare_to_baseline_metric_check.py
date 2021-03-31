@@ -50,7 +50,35 @@ def test_check_correctness():
 
     actual = CompareToBaselineMetricCheck().run(s=pd.Series([0, 8.9, 9, 11, 11.1, 9999999]),
                                                 baseline=10,
-                                                threshold_pct=0.1)
+                                                threshold_pct=0.1,
+                                                is_higher_better=True,
+                                                is_lower_better=False)
+
+    for i in range(0, len(actual)):
+        assert actual[i] == expected[i]
+
+
+def test_lower_is_better():
+    expected = pd.Series([
+    MetricCheckResult(
+        valence_score=1,  # raw score 0
+        valence_label='Higher than',
+        valence_description='Higher than normal based on manual thresholds.',
+        metric_check_label='Compare to Baseline Metric Check',
+    ),
+    MetricCheckResult(
+        valence_score=-1, #metric 9999999
+        valence_label='Lower than',
+        valence_description='Lower than normal based on manual thresholds.',
+        metric_check_label='Compare to Baseline Metric Check',
+    ),
+    ])
+
+    actual = CompareToBaselineMetricCheck().run(s=pd.Series([0, 9999999]),
+                                                baseline=10,
+                                                threshold_pct=0.1,
+                                                is_higher_better=False,
+                                                is_lower_better=True)
 
     for i in range(0, len(actual)):
         assert actual[i] == expected[i]

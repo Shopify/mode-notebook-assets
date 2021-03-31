@@ -21,8 +21,10 @@ class CompareToBaselineMetricCheck(AbstractMetricCheck):
     """
     baseline: float = 0.0
     threshold_pct: float = 0.1
+    is_higher_better: bool = True
+    is_lower_better: bool = False
 
-    def run(self, s: pd.Series, baseline: int, threshold_pct: int):
+    def run(self, s: pd.Series, baseline: int, threshold_pct: int, is_higher_better: bool, is_lower_better: bool):
 
         def map_value_to_result(x: int) -> MetricCheckResult:
             if (x - baseline) / baseline < -1 * threshold_pct:
@@ -33,6 +35,9 @@ class CompareToBaselineMetricCheck(AbstractMetricCheck):
                 _raw_score = 1
             else:
                 _raw_score = 0
+
+            if is_lower_better:
+                _raw_score = _raw_score * -1
 
             _base_labels = map_sign_to_string(
                 _raw_score, [
