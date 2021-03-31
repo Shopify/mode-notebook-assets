@@ -10,19 +10,26 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 
 @dataclass
 class CompareToBaselineMetricCheck(AbstractMetricCheck):
+    """
+    Compare the metric to a manually specified constant baseline.
+    It also includes the option to have a percent threshold. #TODO
+
+    Initialization
+    --------------
+    baseline: float of what the constant baseline is
+    threshold_pct: float of what the percent range above and below the baseline is considered within range.
+    """
     baseline: float = 0.0
-    threshold: float = 0.1
+    threshold_pct: float = 0.1
 
-    # within_range_threshold: float
-
-    def run(self, s: pd.Series, baseline: int, threshold: int):
+    def run(self, s: pd.Series, baseline: int, threshold_pct: int):
 
         def map_value_to_result(x: int) -> MetricCheckResult:
-            if (x - baseline) / baseline < -1 * threshold:
+            if (x - baseline) / baseline < -1 * threshold_pct:
                 _raw_score = -1
-            elif ((x - baseline) / baseline >= -1 * threshold) & ((x - baseline) / baseline <= threshold):
+            elif ((x - baseline) / baseline >= -1 * threshold_pct) & ((x - baseline) / baseline <= threshold_pct):
                 _raw_score = 0
-            elif (x - baseline) / baseline > threshold:
+            elif (x - baseline) / baseline > threshold_pct:
                 _raw_score = 1
             else:
                 _raw_score = 0

@@ -48,8 +48,9 @@ def test_check_correctness():
     ),
     ])
 
-    actual = CompareToBaselineMetricCheck().run(s=pd.Series([0, 8.9, 9, 11, 11.1, 9999999]), baseline=10, threshold = 0.1)
+    actual = CompareToBaselineMetricCheck().run(s=pd.Series([0, 8.9, 9, 11, 11.1, 9999999]),
+                                                baseline=10,
+                                                threshold_pct=0.1)
 
     for i in range(0, len(actual)):
         assert actual[i] == expected[i]
-
