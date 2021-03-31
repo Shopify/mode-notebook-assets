@@ -50,6 +50,8 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
             return np.mean([x for x in window if x <= _maximum_learning_value])
 
         _differences_series = abs(s - s.shift(1))
+
+        # TODO: This needs to be a windowed median to avoid later values influencing earlier ones.
         _maximum_learning_value = _differences_series.quantile(self.maximum_learning_differences_quantile)
 
         if self.is_rolling_window:
