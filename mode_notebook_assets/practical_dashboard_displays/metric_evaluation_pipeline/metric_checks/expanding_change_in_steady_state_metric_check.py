@@ -9,26 +9,24 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
     import AbstractMetricCheck
 
 @dataclass
-class RollingChangeInSteadyStateMetricCheck(AbstractMetricCheck):
+class ExpandingChangeInSteadyStateMetricCheck(AbstractMetricCheck):
     """
     TODO
     """
-    num_rolling_periods = int
-    rolling_window_size: int = 7   # has to be at least the minimum? (add a check for later)
     is_higher_better: bool = True
     is_lower_better: bool = False
     longest_run_1_threshold: int = 7
     longest_run_2_threshold: int = 9
-    _win_type = None
+
     def run(self, s: pd.Series) -> pd.Series:
         # ------ PSEUDO CODE ------
         # Validity checks (enough values in the series? valid number of rolling periods?)
         # Split series into baseline / test
-        # Calculate the rolling mean
+        # Calculate the mean on the baseline
         # Use 7 & 9 for longest run thresholds
-            # a. Calculate default thresholds based on rolling mean (stdev or something else)
+            # a. Calculate default thresholds based on th mean (stdev or something else)
             # b. Allow for manual thresholding (later)
-        # Determine if values are above or below rolling mean
+        # Determine if values are above or below the mean
         # Track number of consecutive values that are above/below the mean
         # Linear interpolation of the longest # of runs (in future improvement consider supporting something other than linear interpolation)
             # this is the raw score
@@ -42,6 +40,7 @@ class RollingChangeInSteadyStateMetricCheck(AbstractMetricCheck):
 
 
         # this will have leading nulls of size s.len - window_size
+        expanding_mean = s.expanding().mean()
         rolling_mean = s.rolling(rolling_window_size, min_periods = None, win_type = _win_type, closed=None).mean()
         pass
         # return _output
