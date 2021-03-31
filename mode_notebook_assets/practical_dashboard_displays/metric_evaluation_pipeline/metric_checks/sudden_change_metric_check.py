@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import pandas as pd
+import numpy as np
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
@@ -42,7 +43,7 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
     is_lower_better: bool = False
 
     # for checks with running averages
-    minimum_periods: int = 7
+    minimum_periods: int = 3
     is_rolling_window: bool = True # if false, expanding
     rolling_periods: int = 12
 
@@ -54,21 +55,21 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
 
         period_change = s - s.shift(1)
 
+        if (self.is_rolling_window):
+            # GF Note: Check on the min_periods argument here.
+            mean_of_pop_differences = abs(s - period_change).\
+                rolling(self.rolling_periods, min_periods=self.minimum_periods).mean()
+        else:
+            mean_of_pop_differences = abs(s - period_change).\
+                expanding(min_periods=self.minimum_periods).mean() 
+        
         sudden_change_l1_threshold_value = self.l1_check_constant * mean_of_pop_differences
         sudden_change_l2_threshold_value = self.l2_check_constant * mean_of_pop_differences
 
-        if (is_rolling_window):
-            # GF Note: Check on the min_periods argument here.
-            mean_of_pop_differences = abs(s - period_change).\
-                rolling(rolling_periods, min_periods=minimum_periods).mean()
-        else:
-            mean_of_pop_differences = abs(s - period_change).\
-                expanding(min_periods=minimum_periods).mean() 
-        
         period_is_actionable = np.abs(period_change) >= sudden_change_l1_threshold_value
 
-        period_score = (abs(period_change) - sudden_change_l1_threshold_value)
-                    / (sudden_change_l2_threshold_value - sudden_change_l1_threshold_value)
+        period_score = (abs(period_change) - sudden_change_l1_threshold_value)\
+                    / (sudden_change_l2_threshold_value - sudden_change_l1_threshold_value)\
                     * np.sign(period_change)
         
         period_score_actionable = period_score * period_is_actionable
@@ -93,7 +94,7 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
                 return MetricCheckResult(
                     valence_score=0,
                     valence_label=map_score_to_string(0),
-                    valence_description='Not enough data to calculate if change in prior period is significant.'
+                    valence_description='Not enough data to calculate if change in prior period is significant.',
                     metric_check_label='Sudden Change Check',
                 )
 
@@ -113,7 +114,7 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
 
         self._validate_inputs(s)
 
-        _output = s.apply(
+        _output = period_score_actionable.apply(
             map_value_to_result
         )
 
