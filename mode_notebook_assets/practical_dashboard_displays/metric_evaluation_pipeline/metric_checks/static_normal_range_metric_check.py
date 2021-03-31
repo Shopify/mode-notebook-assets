@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 import pandas as pd
+import numpy as np
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
@@ -46,7 +47,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         in statistical process control calculations.
         """
         def sum_under_threshold(window: Iterable) -> float:
-            return sum(x for x in window if x < _maximum_learning_value)
+            return np.mean([x for x in window if x <= _maximum_learning_value])
 
         _differences_series = abs(s - s.shift(1))
         _maximum_learning_value = _differences_series.quantile(self.maximum_learning_differences_quantile)
@@ -141,5 +142,4 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
             central_measure=_central_measure_series,
             mean_differences=_mean_period_over_period_difference_series,
         )
-
         return _score_and_threshold_dataframe.raw_valence_scores.apply(_map_raw_score_to_result)
