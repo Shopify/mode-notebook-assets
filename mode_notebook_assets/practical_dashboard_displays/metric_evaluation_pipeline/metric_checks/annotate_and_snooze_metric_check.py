@@ -6,36 +6,44 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
     import MetricCheckResult
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
+
+
 @dataclass
 class AnnotateAndSnoozeMetricCheck(AbstractMetricCheck):
     """
     Override the metric annotations to manually specified descriptions.
     """
-    def run(self, s: pd.Series, annotations: pd.Series) -> pd.Series:
-        """
-        if annotations len(annotations.index) == 0:
-            _output = None
-        else:
-            _output = annotations.apply(map_string_to_result)
-        """
-        def map_string_to_result(x: float) -> MetricCheckResult:
-            if x = '':
+    def run(self, annotations: pd.Series) -> pd.Series:
+
+        def map_annotation_to_result(x: str) -> MetricCheckResult:
+
+            if x == '':
                 _raw_score = 0
                 _is_override = False
+                _description = x
+                _valence_label = 'Annotation'
             else:
                 _raw_score = 1
                 _is_override = True
-                _base_description = x
+                _description = x
+                _valence_label = 'Annotation'
+
             return MetricCheckResult(
                 valence_score=_raw_score,
-                valence_label=map_score_to_string(_raw_score),
+                valence_label=_valence_label,
                 is_override=_is_override,
-                valence_description=_base_description,
+                valence_description=_description,
                 metric_check_label='Annotate And Snooze Metric Check',
             )
-        self._validate_inputs(s)
+
+        if len(annotations.index) == 0:
+            return None
+
+
         _output = annotations.apply(
-            map_string_to_result
+            map_annotation_to_result
         )
-        self._validate_output(s=s, _output=_output)
+
+        self._validate_output(s=annotations, _output=_output)
+
         return _output
