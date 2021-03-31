@@ -46,7 +46,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         in statistical process control calculations.
         """
         def sum_under_threshold(window: Iterable) -> float:
-            return sum(x for x in window if x <= _maximum_learning_value)
+            return sum(x for x in window if x < _maximum_learning_value)
 
         _differences_series = abs(s - s.shift(1))
         _maximum_learning_value = _differences_series.quantile(self.maximum_learning_differences_quantile)
@@ -80,11 +80,9 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
                         (record['higher_l2_threshold'] - record['higher_l1_threshold'])
                 )
             else:
-                assert record['higher_l1_threshold'] > record['period_value'] > record['lower_l1_threshold'], \
-                    'Check that threshold logic is correct.'
                 return 0
 
-        _threshold_df = pd.DataFrame(central_measure).assign(
+        _threshold_df = pd.DataFrame(central_measure, columns=['central_measure']).assign(
             period_value=s,
             lower_l2_threshold=_calculate_threshold_series(-1, self.l2_normal_range_constant),
             lower_l1_threshold=_calculate_threshold_series(-1, self.l1_normal_range_constant),
@@ -92,7 +90,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
             higher_l2_threshold=_calculate_threshold_series(1, self.l2_normal_range_constant),
         )
 
-        _raw_scores = _threshold_df.apply(_calculate_raw_valence_score)
+        _raw_scores = _threshold_df.apply(_calculate_raw_valence_score, axis=1)
 
         return _threshold_df.assign(raw_valence_scores=_raw_scores)
 

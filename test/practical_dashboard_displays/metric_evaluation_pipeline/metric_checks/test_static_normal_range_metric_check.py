@@ -8,7 +8,9 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.\
     static_normal_range_metric_check import StaticNormalRangeMetricCheck
 
-TEST_CONFIGURATION = StaticNormalRangeMetricCheck()
+TEST_CONFIGURATION = StaticNormalRangeMetricCheck(
+    rolling_periods=2,
+)
 
 
 def test_init_manual_four_threshold_metric_check():
