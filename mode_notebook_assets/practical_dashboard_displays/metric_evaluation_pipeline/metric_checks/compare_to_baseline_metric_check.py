@@ -62,10 +62,14 @@ class CompareToBaselineMetricCheck(AbstractMetricCheck):
                 metric_check_label='Compare to Baseline Metric Check',
 
             )
+        
+        self._validate_inputs(s)
 
         _output = s.apply(
             map_value_to_result
         )
+
+        self._validate_output(s=s, _output=_output)
 
         return _output
 
