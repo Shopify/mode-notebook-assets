@@ -317,7 +317,7 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
 
 
 @dataclass
-class TestCumulativeTargetAttainmentDisplay:
+class CumulativeTargetAttainmentDisplay:
     """
     Class for creating a cumulative target attainment display.
     It answers the question "how are we pacing against our end
