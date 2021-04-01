@@ -25,7 +25,7 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
     l1_threshold: int = 7
     l2_threshold: int = 9
 
-    _min_periods = 1
+    _min_periods: int = 1
 
     def __post_init__(self):
         assert self.l1_threshold < self.l2_threshold, 'L1 threshold must be less than L2 threshold.'
@@ -108,7 +108,13 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
                 ],
             )
 
-            # Maybe handle NaNs
+            if np.isnan(_raw_score):
+                return MetricCheckResult(
+                    valence_score=0,
+                    valence_label=map_score_to_string(0),
+                    valence_description='Not enough data to calculate if change in prior period is significant.',
+                    metric_check_label='Change in Steady State Check',
+                )
 
             return MetricCheckResult(
                 valence_score=_normalized_score,

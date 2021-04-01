@@ -26,6 +26,12 @@ TEST_CONFIGURATION_EXPANDING = ChangeInSteadyStateMetricCheck(
     is_rolling_window=False
 )
 
+TEST_CONFIGURATION_MIN_PERIODS = ChangeInSteadyStateMetricCheck(
+    l1_threshold=7,
+    l2_threshold=9,
+    _min_periods=3
+)
+
 def test_init_manual_four_threshold_metric_check():
     assert TEST_CONFIGURATION, 'Object should initialize.'
 
@@ -413,6 +419,108 @@ def test_check_correctness_expanding():
         ),
     ])
     actual = TEST_CONFIGURATION_EXPANDING.run(test_series)
+
+    for i in range(0, len(actual)):
+        assert actual[i] == expected[i]
+
+def test_check_correctness_min_periods():
+
+    test_series = pd.Series([4,5,6,5,4,5,6,-1,-2,-1,-3,-2,-4,-10,-30])
+    expected = pd.Series([
+        MetricCheckResult(
+            valence_score=0,
+            valence_label='In a Normal Range',
+            valence_description='Not enough data to calculate if change in prior period is significant.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0,
+            valence_label='In a Normal Range',
+            valence_description='Not enough data to calculate if change in prior period is significant.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=0.0,
+            valence_label='In a Normal Range',
+            valence_description='No significant change from historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=-0.01,
+            valence_label='Worse than Normal',
+            valence_description='Drop in steady state below historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+        MetricCheckResult(
+            valence_score=-0.51,
+            valence_label='Worse than Normal',
+            valence_description='Drop in steady state below historical mean.',
+            metric_check_label='Change in Steady State Check'
+        ),
+    ])
+    actual = TEST_CONFIGURATION_MIN_PERIODS.run(test_series)
+
+    print([a.__dict__ for a in actual], file=open("test_output.txt", "a"))
 
     for i in range(0, len(actual)):
         assert actual[i] == expected[i]
