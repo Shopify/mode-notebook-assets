@@ -69,7 +69,7 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
             elif abs(r.rolling_sum_l2_threshold) < L1_THRESHOLD:
                 return 0
             else:
-                return np.sign(r.rolling_sum_l1_threshold) * (((abs(r.rolling_sum_l1_threshold) - L1_THRESHOLD) / (L2_THRESHOLD - L1_THRESHOLD)) + 0.01)
+                return np.sign(r.rolling_sum_l2_threshold) * (((abs(r.rolling_sum_l2_threshold) - L1_THRESHOLD) / (L2_THRESHOLD - L1_THRESHOLD)) + 0.01)
 
         # apply mapping and return
         return df.apply(lambda row: _actionability_score_mapping(row), axis=1)
