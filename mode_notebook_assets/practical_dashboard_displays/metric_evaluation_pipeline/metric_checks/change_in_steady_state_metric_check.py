@@ -69,7 +69,10 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
             }
         )
 
-        # Track longest runs
+        # For each value in the sign series, track the number of previous
+        # values that are on the same side of the mean (while tracking the current sign)
+        # Example sign series: [1,1,-1,-1,-1,1,1,1,1,1]
+        # Resulting series:    [1,2,-1,-2,-3,1,2,3,4,5]
         curr_val = None
         curr_consecutive_count = 0
         running_reps = []
