@@ -51,7 +51,7 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
                 }
             )
 
-        # calculate the rolling sums with windows equal in size to our L1 & L2 thresholds and make default activation 0
+        # calculate the rolling sums with windows equal in size to our L2 threshold and initialize the activation
         df = df.assign(
                 rolling_sum_l1_threshold = df.sign.rolling(self.l1_threshold, min_periods = self._min_periods).sum(),
                 rolling_sum_l2_threshold = df.sign.rolling(self.l2_threshold, min_periods = self._min_periods).sum(),
