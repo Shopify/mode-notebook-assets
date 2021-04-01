@@ -15,7 +15,7 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
     Calculating if there has been a deviation from steady state within the period.
     The methodology and thresholds are suggested by Nick Desbarats (Practical Dashboards author)
 
-    We assume a symmetric actionable/extreme ranges about the historical mean.  
+    We assume a symmetric actionable/extreme ranges about the historical mean.
 
     Initialization
     --------------
@@ -23,8 +23,8 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
                         Default value is True.
     is_lower_better:    Should we interpret lower metric values as good (positive valence)?
                         Default value is False.
-    minimum_period:     Minimum number of periods to calculate the metric.
-                        Default value is 3
+    _min_periods:       Minimum number of periods to calculate the metric.
+                        Default value is 1
     is_rolling_window:  Boolean of whether to use a rolling or expanding period.
                         Default value is True
     rolling_periods:    Int of the number of periods for rolling historical mean
@@ -36,35 +36,26 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
                         was above or below the historical mean
                         Default value is 9
     """
+
+    # for all checks
     is_higher_better: bool = True
     is_lower_better: bool = False
 
     # for checks with running averages
-    is_rolling_window: bool = True # if false, use an expanding window
+    _min_periods = 1
+    is_rolling_window: bool = True # if false, expanding
     rolling_periods: int = 7
 
-    # define longest run thresholds
+    # consecutive run threshold for steady state
     l1_threshold: int = 7
     l2_threshold: int = 9
 
-    _min_periods: int = 1
 
     def __post_init__(self):
         assert self.l1_threshold < self.l2_threshold, 'L1 threshold must be less than L2 threshold.'
 
+
     def run(self, s: pd.Series) -> pd.Series:
-        # ------ PSEUDO CODE ------
-        # Validity checks (enough values in the series? valid number of rolling periods?)
-        # Calculate the mean on the baseline
-        # Use 7 & 9 for longest run thresholds
-            # a. Calculate default thresholds based on th mean (stdev or something else)
-            # b. Allow for manual thresholding (later)
-        # Determine if values are above or below the mean
-        # Track number of consecutive values that are above/below the mean
-        # Linear interpolation of the longest # of runs (in future improvement consider supporting something other than linear interpolation)
-            # this is the raw score
-        #  Normalize raw scores
-        # ------ END PSEUDO CODE ------
 
         self._validate_inputs(s)
 
