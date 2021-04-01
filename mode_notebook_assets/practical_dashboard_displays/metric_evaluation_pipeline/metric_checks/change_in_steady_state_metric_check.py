@@ -19,10 +19,12 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
 
     # for checks with running averages
     is_rolling_window: bool = True # if false, use an expanding window
-    rolling_periods: int = 14
 
-    longest_run_1_threshold: int = 7
-    longest_run_2_threshold: int = 9
+    # define longest run thresholds
+    l1_threshold: int = 7
+    l2_threshold: int = 9
+
+    _rolling_periods: int = longest_run_1_threshold
 
     _min_periods = 1
 
@@ -44,16 +46,15 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
 
         # Calculate rolling & expanding averages, and store
         df = pd.DataFrame(
-                {   'metric':           s,
-                    'rolling_average':  s.rolling(rolling_window_size, min_periods=_min_periods).mean(),
-                    'sign':             np.sign(s - s.rolling(rolling_window_size, min_periods=_min_periods).mean())
+                {   'metric':  s,
+                    'sign':    np.sign(s - s.rolling(self._rolling_periods, min_periods = self._min_periods).mean())
                 }
             )
 
-        # calculate the rolling sums with windows equal in size to our L1 & L2 thresholds
+        # calculate the rolling sums with windows equal in size to our L1 & L2 thresholds and make default activation 0
         df = df.assign(
-                rolling_sum_L1_THRESHOLD = df.sign.rolling(L1_THRESHOLD, min_periods=1).sum(),
-                rolling_sum_L2_THRESHOLD = df.sign.rolling(L2_THRESHOLD, min_periods=1).sum(),
+                rolling_sum_l1_threshold = df.sign.rolling(self.l1_threshold, min_periods = self._min_periods).sum(),
+                rolling_sum_l2_threshold = df.sign.rolling(self.l2_threshold, min_periods = self._min_periods).sum(),
                 activation = 0
             )
 
@@ -63,13 +64,10 @@ class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
             This method takes the rolling count above/below the L1/L2 thresholds and maps
             them to an actionability score
             '''
-            if abs(r.rolling_sum_L2_THRESHOLD) >= L2_THRESHOLD:
-                return np.sign(r.rolling_sum_L2_THRESHOLD)
+            if abs(r.rolling_sum_l2_threshold) >= L2_THRESHOLD:
+                return np.sign(r.rolling_sum_l2_threshold)
             else:
-                return np.sign(r.rolling_sum_L1_THRESHOLD) * (((abs(r.rolling_sum_L1_THRESHOLD) - L1_THRESHOLD) / L2_THRESHOLD) + 0.01)
+                return np.sign(r.rolling_sum_l1_threshold) * (((abs(r.rolling_sum_l1_threshold) - L1_THRESHOLD) / L2_THRESHOLD) + 0.01)
 
-        # apply mapping
-        df['activation'] = df.apply(lambda row: _actionability_score_mapping(row), axis=1)
-
-        pass
-        # return _output
+        # apply mapping and return
+        return df.apply(lambda row: _actionability_score_mapping(row), axis=1)
