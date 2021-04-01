@@ -12,7 +12,29 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 @dataclass
 class ChangeInSteadyStateMetricCheck(AbstractMetricCheck):
     """
-    TODO
+    Calculating if there has been a deviation from steady state within the period.
+    The methodology and thresholds are suggested by Nick Desbarats (Practical Dashboards author)
+
+    We assume a symmetric actionable/extreme ranges about the historical mean.  
+
+    Initialization
+    --------------
+    is_higher_better:   Should we interpret higher metric values as good (positive valence)?
+                        Default value is True.
+    is_lower_better:    Should we interpret lower metric values as good (positive valence)?
+                        Default value is False.
+    minimum_period:     Minimum number of periods to calculate the metric.
+                        Default value is 3
+    is_rolling_window:  Boolean of whether to use a rolling or expanding period.
+                        Default value is True
+    rolling_periods:    Int of the number of periods for rolling historical mean
+                        Default value is 7
+    l1_threshold:       Int determining the actionable number of consecutive periods the metric
+                        was above or below the historical mean
+                        Default value is 7
+    l2_threshold:       Int determining the extreme number of consecutive periods the metric
+                        was above or below the historical mean
+                        Default value is 9
     """
     is_higher_better: bool = True
     is_lower_better: bool = False
