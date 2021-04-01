@@ -317,18 +317,14 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
 
 
 @dataclass
-class CumulativeTargetAttainmentDisplay:
+class TestCumulativeTargetAttainmentDisplay:
     """
     Class for creating a cumulative target attainment display.
     It answers the question "how are we pacing against our end
     of period target"? Valence indicators are based on whether
     we are pacing towards our end of period goal.
-
     Input series are non-cumulative, but will be transformed
     to cumulative series for calculation and display.
-
-
-
     Parameters
     ----------
     actual: Non-cumulative time series of actual values (pd.Series)
@@ -356,43 +352,90 @@ class CumulativeTargetAttainmentDisplay:
 
         self.target_period_index = pd.date_range(start=self.period_start_date, end=self.period_end_date)
 
-        self._cleaned_actual = pd.Series(
-            data=self.actual.values,
-            index=pd.to_datetime(self.actual.index),
-        ).reindex(
-            index=pd.date_range(self.period_start_date, max(self.actual.index)),
-            fill_value=0,
-        )
+        if type(self.target_total) in [int, float]:
 
-        # generate target series
-        number_of_periods = len(self.target_period_index)
-        interpolated_period_target = round(self.target_total / number_of_periods)
-        period_target_remainder = self.target_total - (interpolated_period_target * number_of_periods)
+            self._cleaned_actual = pd.Series(
+                data=self.actual.values,
+                index=pd.to_datetime(self.actual.index),
+            ).reindex(
+                index=pd.date_range(self.period_start_date, max(self.actual.index)),
+                fill_value=0,
+            )
 
-        current_period = max(self._cleaned_actual.index)
-        current_period_index = self._cleaned_actual.index.get_loc(current_period)
+            current_period = max(self._cleaned_actual.index)
+            current_period_index = self._cleaned_actual.index.get_loc(current_period)
 
-        self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
-            is_current_period=pd.Series([False] * (len(self._cleaned_actual)-1) + [True], index=self._cleaned_actual.index),
-            actual=self._cleaned_actual,
-            actual_cumulative=self._cleaned_actual.cumsum(),
-            target_interpolated=interpolated_period_target,
-            target_cumulative=lambda df: df.target_interpolated.cumsum() + period_target_remainder,
-            attainment_pacing_proportion=lambda df: df.actual_cumulative/df.target_cumulative,
-            actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
-                lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
-            ),
-            actionability_scores=(
-                lambda df: df.apply(
-                    lambda r: self.calculate_target_attainment_valence(
-                        actual_value=r['actual_cumulative'],
-                        target_value=r['target_cumulative'],
-                    ) if r['is_current_period'] else 0,
-                    axis=1
-                )
-            ),
-            actionability_actuals=lambda df: df.actual_cumulative,  # initialize as empty; only last period will be calculated
-        )
+            # generate target series
+            number_of_periods = len(self.target_period_index)
+            interpolated_period_target = round(self.target_total / number_of_periods)
+            period_target_remainder = self.target_total - (interpolated_period_target * number_of_periods)
+
+            self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
+                is_current_period=pd.Series([False] * (len(self._cleaned_actual) - 1) + [True],
+                                            index=self._cleaned_actual.index),
+                actual=self._cleaned_actual,
+                actual_cumulative=self._cleaned_actual.cumsum(),
+                target_interpolated=interpolated_period_target,
+                target_cumulative=lambda df: df.target_interpolated.cumsum() + period_target_remainder,
+                attainment_pacing_proportion=lambda df: df.actual_cumulative / df.target_cumulative,
+                actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
+                    lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
+                ),
+                actionability_scores=(
+                    lambda df: df.apply(
+                        lambda r: self.calculate_target_attainment_valence(
+                            actual_value=r['actual_cumulative'],
+                            target_value=r['target_cumulative'],
+                        ) if r['is_current_period'] else 0,
+                        axis=1
+                    )
+                ),
+                actionability_actuals=lambda df: df.actual_cumulative,
+                # initialize as empty; only last period will be calculated
+            )
+
+        else:
+
+            self._cleaned_actual = pd.Series(
+                data=self.actual.values,
+                index=pd.to_datetime(self.actual.index),
+            ).reindex(
+                index=pd.date_range(self.period_start_date, max(self.actual.index)),
+                fill_value=0,
+            )
+
+            self.reindexed_target_series = pd.Series(
+                data=self.target_total,
+                index=pd.to_datetime(self.target_total.index)
+            )
+
+            current_period = max(self._cleaned_actual.index)
+            current_period_index = self._cleaned_actual.index.get_loc(current_period)
+
+            self.target_attainment_df = pd.DataFrame(index=self._cleaned_actual.index).assign(
+                is_current_period=pd.Series([False] * (len(self._cleaned_actual) - 1) + [True],
+                                            index=self._cleaned_actual.index),
+                actual=self._cleaned_actual,
+                actual_cumulative=self._cleaned_actual.cumsum(),
+                target_interpolated=self.reindexed_target_series,
+                target_cumulative=lambda df: df.target_interpolated.cumsum().interpolate(),
+
+                attainment_pacing_proportion=lambda df: df.actual_cumulative / df.target_cumulative,
+                actionability_hover_text=lambda df: df.attainment_pacing_proportion.apply(
+                    lambda x: 'Pacing to {}% of target.'.format(int(100 * x)) if not pd.isnull(x) else ''
+                ),
+                actionability_scores=(
+                    lambda df: df.apply(
+                        lambda r: self.calculate_target_attainment_valence(
+                            actual_value=r['actual_cumulative'],
+                            target_value=r['target_cumulative'],
+                        ) if r['is_current_period'] else 0,
+                        axis=1
+                    )
+                ),
+                actionability_actuals=lambda df: df.actual_cumulative,
+                # initialize as empty; only last period will be calculated
+            )
 
         self.target_attainment_df.actionability_scores[current_period_index] = self.calculate_target_attainment_valence(
             actual_value=self.target_attainment_df.actual_cumulative[current_period_index],
@@ -401,7 +444,7 @@ class CumulativeTargetAttainmentDisplay:
 
     def calculate_target_attainment_valence(self, actual_value, target_value):
 
-        target_deviation = (actual_value-target_value)/target_value
+        target_deviation = (actual_value - target_value) / target_value
         if np.abs(target_deviation) < self.minor_attainment_deviation:
             return 0
         else:
