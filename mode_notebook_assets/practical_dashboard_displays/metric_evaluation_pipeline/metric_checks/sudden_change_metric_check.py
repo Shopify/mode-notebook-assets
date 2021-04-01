@@ -27,15 +27,15 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
                         Default value is True.
     is_lower_better:    Should we interpret lower metric values as good (positive valence)?
                         Default value is False.
-    minimum_period:     Minimum number of periods to calculate the metric.
+    minimum_periods:    Minimum number of periods to calculate the metric.
                         Default value is 3
-    rolling_window:     Boolean of whether to use a rolling or expanding period.
-                        Default value is False
-    rolling_periods:    Int of the number of periods for rolling
+    is_rolling_window:  Boolean of whether to use a rolling or expanding period.
+                        Default value is True
+    rolling_periods:    Int of the number of periods for rolling.
                         Default value is 12
-    l1_check_constant:  Scalar determining actionable range
+    l1_check_constant:  Constant float for determining actionable range
                         Default value is 3.27
-    l2_check_constant:  Scalar determining extreme range
+    l2_check_constant:  Constant float for determining extreme range
                         Default value is 4.905
     """
     # for all checks
