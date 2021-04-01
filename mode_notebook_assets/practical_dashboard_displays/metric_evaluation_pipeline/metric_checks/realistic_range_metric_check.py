@@ -17,19 +17,19 @@ class RealisticRangeMetricCheck(AbstractMetricCheck):
 	def run(self, s: pd.Series) -> pd.Series:
 		def check_values_against_bounds(x: float) -> MetricCheckResult:
 			if x > self.upper_bound:
-				_valence_label = 'Above Upper Bound'
-				_description = 'Result is above upper bound'
-				_is_ambiguous = False
+				_valence_label = 'Above Realistic Range'
+				_description = 'Result is higher than make sense for this metric'
+				_is_ambiguous = True
 				_raw_score = 1
 			elif x < self.lower_bound:
-				_valence_label = 'Below lower Bound'
-				_description = 'Result is below lower bound'
-				_is_ambiguous = False
+				_valence_label = 'Below Realistic Range'
+				_description = 'Result is lower than make sense for this metric'
+				_is_ambiguous = True
 				_raw_score = -1
 			else:
 				_valence_label = ''
-				_description = 'Result is between bounds'
-				_is_ambiguous = True
+				_description = 'Result makes sense for this metric'
+				_is_ambiguous = False
 				_raw_score = 0
 
 			return MetricCheckResult(
