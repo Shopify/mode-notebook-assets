@@ -89,7 +89,7 @@ class RecentPeriodDriverAnalysis:
             x='vs_rolling_avg_absolute',
             y='vs_rolling_avg_relative',
             text='index',
-            title='Retail SQL Driver Analysis: Retail SQLs (March 2021)',
+            title=self.title,
             labels=dict(
                 index=self.grouping_column.replace('_', ' ').title(),
                 vs_rolling_avg_absolute='Actual Difference vs. Rolling Average',
