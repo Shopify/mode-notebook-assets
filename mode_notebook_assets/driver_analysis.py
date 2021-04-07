@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -78,6 +79,11 @@ class RecentPeriodDriverAnalysis:
         -------
         Plotly Figure
         """
+
+        _axis_scale_factor = 1.2
+        _y_axis_range_base = _axis_scale_factor * max(np.abs(self.group_deviations_df['vs_rolling_avg_relative']))
+        _x_axis_range_base = _axis_scale_factor * max(np.abs(self.group_deviations_df['vs_rolling_avg_absolute']))
+
         return px.scatter(
             data_frame=self.group_deviations_df.reset_index(),
             x='vs_rolling_avg_absolute',
@@ -93,5 +99,12 @@ class RecentPeriodDriverAnalysis:
         ).update_layout({
             'yaxis': {
                 'tickformat': ',.0%',
-            }
+                'range': (-1 * _y_axis_range_base, _y_axis_range_base),
+                'zerolinecolor': '#a0a9b8',
+            },
+            'xaxis': {
+                'range': (-1 * _x_axis_range_base, _x_axis_range_base),
+                'zerolinecolor': '#a0a9b8',
+            },
         })
+
