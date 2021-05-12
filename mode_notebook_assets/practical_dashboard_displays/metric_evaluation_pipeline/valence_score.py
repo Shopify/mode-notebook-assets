@@ -13,29 +13,29 @@ AMBIGUOUS_VALENCE_LABEL = 'Ambiguous'
 
 
 @dataclass
-class MetricCheckResult:
+class ValenceScore:
     """
-    The MetricCheckResult is the output of a MetricCheck at a point in time.
+    The ValenceScore is the output of a MetricCheck at a point in time.
 
     Goals of this class are:
     * Store valence_score and all the information we need to interpret it
-    * Define logic for combining MetricCheckResults, which may have conflicting valences or priorities
-    * Store combined MetricCheckResults to maintain a simple data interface without loss of information
-    * Allow subclassing for common patterns of MetricCheck results. For example, an ActionabilityMetricCheckResult
+    * Define logic for combining ValenceScores, which may have conflicting valences or priorities
+    * Store combined ValenceScores to maintain a simple data interface without loss of information
+    * Allow subclassing for common patterns of MetricCheck results. For example, an ActionabilityValenceScore
       might automatically populate valence_label with one of "Extraordinary", "Better than Normal", "Normal",
       "Worse than Normal", or "Potential Crisis".
 
     Initialization
     ----------
     valence_score: This is a **directional** actionability score computed by a MetricCheck.
-    priority_score: MetricCheckResults will ignore lower priority results when combined.
+    priority_score: ValenceScores will ignore lower priority results when combined.
     is_override: Should this check override checks regardless of priority?
     is_ambiguous: Do the highest-priority checks have conflicting valences?
     metric_check_label: What kind of check produced this result?
     valence_label: A one to three word human readable description of the valence and actionability level.
     valence_description: A longer description of the valence, e.g. "The metric increased suddenly".
     text_separator: How do you concatenate descriptions?
-    child_metric_check_results: Track *original* (never combined) MetricCheckResults to avoid information loss.
+    child_metric_check_results: Track *original* (never combined) ValenceScores to avoid information loss.
     """
     valence_score: float
     valence_label: str
@@ -45,7 +45,7 @@ class MetricCheckResult:
     is_ambiguous: bool = False
     metric_check_label: str = UNSPECIFIED_METRIC_CHECK_LABEL
     text_separator: str = ' - '
-    child_metric_check_results: List[Union['MetricCheckResult', None]] = None
+    child_metric_check_results: List[Union['ValenceScore', None]] = None
 
     def __post_init__(self):
         # tweak inputs
@@ -56,14 +56,14 @@ class MetricCheckResult:
         assert (self.priority_score >= 0), 'Priority score is invalid'
 
         for r in self.child_metric_check_results:
-            assert (r.child_metric_check_results == []), 'Arbitrary nesting of MetricCheckResult is forbidden.'
+            assert (r.child_metric_check_results == []), 'Arbitrary nesting of ValenceScore is forbidden.'
 
-    def __add__(self, other: 'MetricCheckResult'):
+    def __add__(self, other: 'ValenceScore'):
         """
-        Combine together two MetricCheckResults.
+        Combine together two ValenceScores.
         """
 
-        def choose_result(func: Callable, attr_name: str, do_not_allow_ties=True) -> Union['MetricCheckResult', None]:
+        def choose_result(func: Callable, attr_name: str, do_not_allow_ties=True) -> Union['ValenceScore', None]:
             """
             Choose self or other using func and key. Return None in the case of a disallowed tie.
 
@@ -75,7 +75,7 @@ class MetricCheckResult:
 
             Returns
             -------
-            MetricCheckResult or None
+            ValenceScore or None
             """
             _self_value = getattr(self, attr_name)
             _other_value = getattr(other, attr_name)
@@ -114,7 +114,7 @@ class MetricCheckResult:
 
         if self.is_override and other.is_override:
             if not _higher_priority_result:
-                return MetricCheckResult(
+                return ValenceScore(
                     valence_score=max(self.valence_score, other.valence_score),
                     priority_score=min(self.priority_score, other.priority_score),
                     is_override=True,
@@ -143,7 +143,7 @@ class MetricCheckResult:
                 _combined_child_metric_check_results
             )
         else:
-            return MetricCheckResult(
+            return ValenceScore(
                 valence_score=_combined_valence_score,
                 priority_score=_combined_priority_score,
                 is_ambiguous=_combined_is_ambiguous,

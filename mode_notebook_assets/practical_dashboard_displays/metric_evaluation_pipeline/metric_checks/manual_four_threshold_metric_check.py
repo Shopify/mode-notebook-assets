@@ -3,8 +3,8 @@ import pandas as pd
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results \
-    import MetricCheckResult
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score \
+    import ValenceScore
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
 
@@ -37,7 +37,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
         assert _threshold_list == sorted(_threshold_list), 'Thresholds must be in increasing order.'
 
     def run(self, s: pd.Series) -> pd.Series:
-        def map_value_to_result(x: float) -> MetricCheckResult:
+        def map_value_to_result(x: float) -> ValenceScore:
             if x <= self.threshold_1:
                 _raw_score = -1
             elif x <= self.threshold_2:
@@ -63,7 +63,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
                 ],
             )
 
-            return MetricCheckResult(
+            return ValenceScore(
                 valence_score=_normalized_score,
                 valence_label=map_score_to_string(_normalized_score),
                 valence_description=map_score_to_string(_normalized_score, labels=[

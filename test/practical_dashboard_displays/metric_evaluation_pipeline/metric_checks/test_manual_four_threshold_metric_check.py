@@ -3,8 +3,8 @@ from itertools import permutations
 import pytest
 import pandas as pd
 
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results import \
-    MetricCheckResult
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
+    ValenceScore
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.manual_four_threshold_metric_check import \
     ManualFourThresholdMetricCheck
 
@@ -41,37 +41,37 @@ def test_run_check():
 
 def test_check_correctness():
     expected = pd.Series([
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0,
             valence_label='In a Normal Range',
             valence_description='Within the range of normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0,
             valence_label='In a Normal Range',
             valence_description='Within the range of normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=-1,
             valence_label='Unusually Bad',
             valence_description='Significantly lower than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=-0.51,
             valence_label='Worse than Normal',
             valence_description='Lower than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0.51,
             valence_label='Better than Normal',
             valence_description='Higher than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=1,
             valence_label='Unusually Good',
             valence_description='Significantly higher than normal based on manual thresholds.',
@@ -86,37 +86,37 @@ def test_check_correctness():
 
 def test_reconfigured_directionality():
     expected = pd.Series([
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0,
             valence_label='In a Normal Range',
             valence_description='Within the range of normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0,
             valence_label='In a Normal Range',
             valence_description='Within the range of normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=1,
             valence_label='Unusually Good',
             valence_description='Significantly lower than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=0.51,
             valence_label='Better than Normal',
             valence_description='Lower than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=-0.51,
             valence_label='Worse than Normal',
             valence_description='Higher than normal based on manual thresholds.',
             metric_check_label='Manual Four Threshold Check',
         ),
-        MetricCheckResult(
+        ValenceScore(
             valence_score=-1,
             valence_label='Unusually Bad',
             valence_description='Significantly higher than normal based on manual thresholds.',

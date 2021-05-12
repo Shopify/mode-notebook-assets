@@ -5,8 +5,8 @@ from typing import List, Union
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results import \
-    MetricCheckResult
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
+    ValenceScore
 
 OptionalSeries = Union[pd.Series, None]
 
@@ -18,7 +18,7 @@ class AbstractMetricCheck(ABC):
         * Create a new dataclass inheriting from AbstractMetricCheck¹
         * Define configuration-level parameters as dataclass attributes²
         * Override the `run` method to implement your MetricCheck
-        * Return a series of MetricCheckResults
+        * Return a series of ValenceScores
 
     ¹ When naming MetricChecks, follow the `[A-Za-z]MetricCheck` naming pattern,
     e.g. DeviationFromForecastMetricCheck not CheckMetricAgainstForecast.
@@ -104,8 +104,8 @@ class AbstractMetricCheck(ABC):
                                               'Indexing must be handled by the MetricEvaluationPipeline.'
         assert (isinstance(_output, pd.Series)), 'MetricCheck output must be a Pandas Series.'
         for result in _output.values:
-            assert issubclass(result.__class__, MetricCheckResult), 'All elements of MetricCheck output ' \
-                                                                    'must inherit from the MetricCheckResult'
+            assert issubclass(result.__class__, ValenceScore), 'All elements of MetricCheck output ' \
+                                                                    'must inherit from the ValenceScore'
 
     @abstractmethod
     def run(self, s: pd.Series) -> pd.Series:
@@ -129,13 +129,13 @@ class AbstractMetricCheck(ABC):
 
         Returns
         -------
-        A pandas series of MetricCheckResult objects
+        A pandas series of ValenceScore objects
         """
 
         # Validate inputs
         self._validate_inputs(s)
 
-        # Index should be the same as s, and values should be MetricCheckResults
+        # Index should be the same as s, and values should be ValenceScores
         _output = pd.Series()
 
         # Validate outputs
