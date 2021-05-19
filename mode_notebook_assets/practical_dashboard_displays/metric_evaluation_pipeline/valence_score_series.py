@@ -49,8 +49,12 @@ class ValenceScoreSeries:
         -------
         ValenceScoreSeries
         """
-        assert self._score_series.index == other._score_series.index
-        return self._score_series + other._score_series
+        assert (self._score_series.index == other._score_series.index).all(), \
+            'ValenceScoreSeries can only be combined if theri indices have identical values.'
+        assert len(self._score_series.index) == len(other._score_series.index), \
+            'ValenceScoreSeries can only be combined if their indices have the same length.'
+
+        return ValenceScoreSeries(self._score_series + other._score_series)
 
     def __repr__(self) -> str:
         """
@@ -60,7 +64,7 @@ class ValenceScoreSeries:
         -------
         str
         """
-        return f'ValenceScoreSeries with {self._score_series.len()} periods.' \
+        return f'ValenceScoreSeries with {len(self._score_series)} periods.' \
                f'The more recent period index is {self._score_series.index[-1]}.' \
                f'The most recent ValenceScore is {self.last_record().valence_label}' \
                f'from {self.last_record().metric_check_label}.'
@@ -74,4 +78,4 @@ class ValenceScoreSeries:
         -------
         ValenceScore
         """
-        return self._score_series.tail(1)
+        return self._score_series[-1]
