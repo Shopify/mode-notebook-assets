@@ -6,10 +6,11 @@ import numpy as np
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results \
-    import MetricCheckResult
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
+    ValenceScoreSeries
 
 
 @dataclass
@@ -97,9 +98,9 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
 
         return _threshold_df.assign(raw_valence_scores=_raw_scores)
 
-    def run(self, s: pd.Series) -> pd.Series:
+    def apply(self, s: pd.Series) -> ValenceScoreSeries:
         """
-        Run method for the normal range metric check.
+        Apply method for the normal range metric check.
 
         Parameters
         ----------
@@ -107,9 +108,9 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
 
         Returns
         -------
-        Series of MetricCheckResults
+        ValenceScoreSeries
         """
-        def _map_raw_score_to_result(_raw_score: float) -> MetricCheckResult:
+        def _map_raw_score_to_result(_raw_score: float) -> ValenceScore:
 
             _normalized_score = normalize_valence_score(
                 _raw_score=_raw_score,
@@ -124,7 +125,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
                 ],
                                                    )
 
-            return MetricCheckResult(
+            return ValenceScore(
                 valence_score=_normalized_score,
                 valence_label=map_score_to_string(_normalized_score),
                 valence_description=map_score_to_string(_normalized_score, labels=[
@@ -137,6 +138,8 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
                 metric_check_label=self._metric_check_label,
             )
 
+        self._validate_inputs(s)
+
         _central_measure_series = self._calculate_central_measure(s)
         _mean_period_over_period_difference_series = self._calculate_mean_of_period_over_period_differences(s)
         _score_and_threshold_dataframe = self._calculate_thresholds_and_scores(
@@ -144,4 +147,9 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
             central_measure=_central_measure_series,
             mean_differences=_mean_period_over_period_difference_series,
         )
-        return _score_and_threshold_dataframe.raw_valence_scores.apply(_map_raw_score_to_result)
+
+        _output_data_series = _score_and_threshold_dataframe.raw_valence_scores.apply(_map_raw_score_to_result)
+
+        self._validate_output(s, _output_data_series)
+
+        return ValenceScoreSeries(_output_data_series)
