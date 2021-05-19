@@ -45,8 +45,12 @@ class ValenceScore:
     is_ambiguous: bool = False
     metric_check_label: str = UNSPECIFIED_METRIC_CHECK_LABEL
     text_separator: str = ' - '
+    # todo: rename params
     child_metric_check_results: List[Union['ValenceScore', None]] = None
 
+    # todo: rename files, tests, references
+
+    # todo: repr
     def __post_init__(self):
         # tweak inputs
         self.child_metric_check_results = self.child_metric_check_results or []
