@@ -47,7 +47,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         Calculate the period over period differences for use
         in statistical process control calculations.
         """
-        def sum_under_threshold(window: Iterable) -> float:
+        def calculate_mean_under_threshold(window: Iterable) -> float:
             return np.mean([x for x in window if x <= _maximum_learning_value])
 
         _differences_series = abs(s - s.shift(1))
@@ -56,9 +56,9 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         _maximum_learning_value = _differences_series.quantile(self.maximum_learning_differences_quantile)
 
         if self.is_rolling_window:
-            return _differences_series.rolling(self.rolling_periods).apply(sum_under_threshold)
+            return _differences_series.rolling(self.rolling_periods).apply(calculate_mean_under_threshold)
         else:
-            return _differences_series.expanding().apply(sum_under_threshold)
+            return _differences_series.expanding().apply(calculate_mean_under_threshold)
 
     def _calculate_thresholds_and_scores(self, s: pd.Series, central_measure: pd.Series,
                                          mean_differences: pd.Series) -> pd.DataFrame:
