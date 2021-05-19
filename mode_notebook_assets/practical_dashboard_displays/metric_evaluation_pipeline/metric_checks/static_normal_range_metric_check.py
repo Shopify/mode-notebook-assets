@@ -42,23 +42,28 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         else:
             return s.expanding().mean()
 
-    def _calculate_mean_of_period_over_period_differences(self, s: pd.Series) -> pd.Series:
+    def _calculate_rolling_mean_of_period_over_period_differences(self, s: pd.Series) -> pd.Series:
         """
         Calculate the period over period differences for use
         in statistical process control calculations.
         """
-        def calculate_mean_under_threshold(window: Iterable) -> float:
-            return np.mean([x for x in window if x <= _maximum_learning_value])
-
         _differences_series = abs(s - s.shift(1))
 
-        # TODO: This needs to be a windowed median to avoid later values influencing earlier ones.
-        _maximum_learning_value = _differences_series.quantile(self.maximum_learning_differences_quantile)
+        if self.is_rolling_window:
+            _median_window = _differences_series.rolling(self.rolling_periods)
+        else:
+            _median_window = _differences_series.expanding()
+
+        _windowed_quantile_series = _median_window.quantile(self.maximum_learning_differences_quantile, interpolation='higher')
+
+        _learning_differences_series = _differences_series.combine(_windowed_quantile_series, min)
 
         if self.is_rolling_window:
-            return _differences_series.rolling(self.rolling_periods).apply(calculate_mean_under_threshold)
+            _learning_window = _learning_differences_series.rolling(self.rolling_periods)
         else:
-            return _differences_series.expanding().apply(calculate_mean_under_threshold)
+            _learning_window = _learning_differences_series.expanding()
+
+        return _learning_window.mean()
 
     def _calculate_thresholds_and_scores(self, s: pd.Series, central_measure: pd.Series,
                                          mean_differences: pd.Series) -> pd.DataFrame:
@@ -141,7 +146,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         self._validate_inputs(s)
 
         _central_measure_series = self._calculate_central_measure(s)
-        _mean_period_over_period_difference_series = self._calculate_mean_of_period_over_period_differences(s)
+        _mean_period_over_period_difference_series = self._calculate_rolling_mean_of_period_over_period_differences(s)
         _score_and_threshold_dataframe = self._calculate_thresholds_and_scores(
             s=s,
             central_measure=_central_measure_series,
