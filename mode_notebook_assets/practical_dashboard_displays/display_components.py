@@ -6,7 +6,7 @@ import pandas as pd
 from plotly import graph_objects as go
 
 from mode_notebook_assets.practical_dashboard_displays.legacy_helper_functions import map_actionability_score_to_color
-from mode_notebook_assets.practical_dashboard_displays import MetricEvaluationPipeline
+from mode_notebook_assets.practical_dashboard_displays import LegacyMetricEvaluationPipeline
 
 
 def html_div_grid(html_elements:list, table_width='98%', cell_padding='5px', columns=3):
@@ -181,7 +181,7 @@ class DatasetEvaluationGenerator:
         _metric_evaluation_pipeline_options = (metric_evaluation_pipeline_options or {})
 
         _pipeline_lookup = {
-            key: MetricEvaluationPipeline(
+            key: LegacyMetricEvaluationPipeline(
                 series,
                 metric_name=key,
                 measure_name=self.measure_column,
@@ -298,7 +298,7 @@ def make_metric_collection_display(metric_specifications: List[dict], title: str
     return convert_metric_status_table_to_html(pd.DataFrame([
         # Initialize a MetricEvaluationPipeline
         add_dict_key(
-            MetricEvaluationPipeline(
+            LegacyMetricEvaluationPipeline(
                 s=kpi_dict['time_series'],
                 metric_name=kpi_dict['name'],
                 # Instead of the annotated time series chart,

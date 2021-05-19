@@ -1,5 +1,5 @@
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_evaluation_pipeline import \
-    MetricEvaluationPipeline
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.legacy_metric_evaluation_pipeline import \
+    LegacyMetricEvaluationPipeline
 from mode_notebook_assets.practical_dashboard_displays.display_components import DatasetEvaluationGenerator, \
     CumulativeTargetAttainmentDisplay, html_div_grid, plotly_div_grid, convert_metric_status_table_to_html, \
     make_metric_collection_display, make_metric_segmentation_grid_display

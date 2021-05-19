@@ -29,7 +29,7 @@ _df = pd.DataFrame.from_records(rows)
 
 # Process metrics
 
-mep = pdd.MetricEvaluationPipeline(
+mep = pdd.LegacyMetricEvaluationPipeline(
     _ts,
 )
 

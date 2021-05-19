@@ -11,7 +11,7 @@ from mode_notebook_assets.practical_dashboard_displays.legacy_metric_check impor
 
 
 @dataclass
-class MetricEvaluationPipeline:
+class LegacyMetricEvaluationPipeline:
     s: pd.Series
 
     metric_name: str = None
