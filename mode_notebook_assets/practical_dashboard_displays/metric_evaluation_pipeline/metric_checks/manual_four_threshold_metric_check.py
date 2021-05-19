@@ -7,6 +7,8 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
     import ValenceScore
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
+    ValenceScoreSeries
 
 
 @dataclass
@@ -36,7 +38,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
         _threshold_list = [self.threshold_1, self.threshold_2, self.threshold_3, self.threshold_4]
         assert _threshold_list == sorted(_threshold_list), 'Thresholds must be in increasing order.'
 
-    def run(self, s: pd.Series) -> pd.Series:
+    def apply(self, s: pd.Series) -> ValenceScoreSeries:
         def map_value_to_result(x: float) -> ValenceScore:
             if x <= self.threshold_1:
                 _raw_score = -1
@@ -78,10 +80,10 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
 
         self._validate_inputs(s)
 
-        _output = s.apply(
+        _output_data_series = s.apply(
             map_value_to_result
         )
 
-        self._validate_output(s=s, _output=_output)
+        self._validate_output(s=s, _output=_output_data_series)
 
-        return _output
+        return ValenceScoreSeries(_output_data_series)

@@ -7,8 +7,8 @@ from pandas.api.types import is_numeric_dtype
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
     ValenceScore
-
-OptionalSeries = Union[pd.Series, None]
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
+    ValenceScoreSeries
 
 
 class AbstractMetricCheck(ABC):
@@ -17,15 +17,14 @@ class AbstractMetricCheck(ABC):
     To create your own MetricCheck:
         * Create a new dataclass inheriting from AbstractMetricCheck¹
         * Define configuration-level parameters as dataclass attributes²
-        * Override the `run` method to implement your MetricCheck
-        * Return a series of ValenceScores
+        * Override the `apply` method to implement your MetricCheck
+        * Return a ValenceScoreSeries
 
     ¹ When naming MetricChecks, follow the `[A-Za-z]MetricCheck` naming pattern,
     e.g. DeviationFromForecastMetricCheck not CheckMetricAgainstForecast.
 
     ² Initialization parameters should be independent of the actual data, meaning
-    that it can be re-used. Attributes that might change from run to run should
-    be passed to `run`. For example, you might add a manually set "realistic range"
+    that it can be re-used. For example, you might add a manually set "realistic range"
     using dataclass parameters.
     """
 
@@ -80,7 +79,7 @@ class AbstractMetricCheck(ABC):
             assert isinstance(_input_series, pd.Series), 'All MetricCheck inputs should be Pandas Series.'
             assert (_input_series.index == s.index), '''
                 All MetricCheck inputs must have identical indices. This is 
-                enforced by the MetricEvaluationPipeline. If the MetricCheck is run 
+                enforced by the MetricEvaluationPipeline. If the MetricCheck is applied 
                 outside of a MetricEvaluationPipeline, it is the responsibility of the 
                 caller to conform the indices.
             '''
@@ -93,7 +92,7 @@ class AbstractMetricCheck(ABC):
         Parameters
         ----------
         s: The input metric data series
-        _output: The output series created by `run`
+        _output: The output series created by `apply`
 
         Returns
         -------
@@ -108,10 +107,10 @@ class AbstractMetricCheck(ABC):
                                                                     'must inherit from the ValenceScore'
 
     @abstractmethod
-    def run(self, s: pd.Series) -> pd.Series:
+    def apply(self, s: pd.Series) -> ValenceScoreSeries:
         """
-        An abstract implementation of MetricCheck.run(). This method defines the processing
-        logic of the MetricCheck. The majority of MetricChecks will only need `s` to run.
+        An abstract implementation of MetricCheck.apply(). This method defines the processing
+        logic of the MetricCheck. The majority of MetricChecks will only need `s` to execute `apply`.
         Some may use optional additional parameters (see list below).
 
         Make sure to validate inputs and outputs using the base class methods.
@@ -136,9 +135,9 @@ class AbstractMetricCheck(ABC):
         self._validate_inputs(s)
 
         # Index should be the same as s, and values should be ValenceScores
-        _output = pd.Series()
+        _output_data_series = pd.Series()
 
         # Validate outputs
-        self._validate_output(s, _output)
+        self._validate_output(s, _output_data_series)
 
-        return _output
+        return ValenceScoreSeries(_output_data_series)
