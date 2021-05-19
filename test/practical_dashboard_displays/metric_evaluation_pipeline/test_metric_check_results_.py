@@ -88,3 +88,67 @@ def test_override_preference():
     )
 
     assert override + not_override == expected
+
+
+def test_positive_valence_magnitude_preference():
+    neutral_score = ValenceScore(
+        valence_score=0,
+        valence_label='Normal',
+        valence_description='Nothing to see here',
+    )
+    actionable_score = ValenceScore(
+        valence_score=1.2,
+        valence_label='Higher',
+        valence_description='Nothing to see here',
+    )
+    expected = ignore_child_metric_check_results(
+        ValenceScore(
+            valence_score=1.2,
+            valence_label='Higher',
+            valence_description='Nothing to see here',
+        )
+    )
+    assert (neutral_score + actionable_score).valence_score == expected.valence_score
+
+
+def test_negative_valence_magnitude_preference():
+    neutral_score = ValenceScore(
+        valence_score=0,
+        valence_label='Normal',
+        valence_description='Nothing to see here',
+    )
+    actionable_score = ValenceScore(
+        valence_score=-1.2,
+        valence_label='Lower',
+        valence_description='Nothing to see here',
+    )
+    expected = ignore_child_metric_check_results(
+        ValenceScore(
+            valence_score=-1.2,
+            valence_label='Lower',
+            valence_description='Nothing to see here',
+        )
+    )
+    assert (neutral_score + actionable_score).valence_score == expected.valence_score
+
+
+def test_ambiguous_valence_score():
+    neutral_score = ValenceScore(
+        valence_score=0,
+        valence_label='Normal',
+        valence_description='Nothing to see here',
+    )
+    negative_score = ValenceScore(
+        valence_score=-1.2,
+        valence_label='Lower',
+        valence_description='Nothing to see here',
+    )
+    positive_score = ValenceScore(
+        valence_score=1.2,
+        valence_label='Lower',
+        valence_description='Nothing to see here',
+    )
+
+    assert not (neutral_score + negative_score).is_ambiguous
+    assert not (neutral_score + positive_score).is_ambiguous
+    assert (positive_score + negative_score).is_ambiguous
