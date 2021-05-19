@@ -104,11 +104,11 @@ class ValenceScore:
             )
         )
 
-        _combined_valence_score = max(self.valence_score, other.valence_score)
+        _combined_valence_score = max(self.valence_score, other.valence_score, key=np.abs)
         _combined_priority_score = min(self.priority_score, other.priority_score)
-        _combined_is_ambiguous = not(
-                self.valence_score != other.valence_score
-                and np.sign(self.valence_score) == np.sign(other.valence_score)
+        _combined_is_ambiguous = np.sign(self.valence_score) != np.sign(other.valence_score) and (
+            self.valence_score != 0
+            and other.valence_score != 0
         )
 
         _combined_valence_label = (
