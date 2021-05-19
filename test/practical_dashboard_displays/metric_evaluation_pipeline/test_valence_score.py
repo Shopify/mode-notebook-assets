@@ -5,11 +5,11 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
     ValenceScore
 
 
-def ignore_child_metric_check_results(mcr: ValenceScore) -> ValenceScore:
-    return functional_setattr(mcr, 'child_metric_check_results', [])
+def ignore_child_valence_scores(mcr: ValenceScore) -> ValenceScore:
+    return functional_setattr(mcr, 'child_valence_scores', [])
 
 
-def test_init_metric_check_result():
+def test_init_valence_score():
     assert ValenceScore(
         valence_score=0,
         valence_label='Normal',
@@ -30,7 +30,7 @@ def test_priority_preference():
         valence_description='Nothing to see here',
         priority_score=2,
     )
-    expected = ignore_child_metric_check_results(
+    expected = ignore_child_valence_scores(
         ValenceScore(
             valence_score=0,
             valence_label='Normal',
@@ -54,7 +54,7 @@ def test_priority_preference_tie():
         valence_description='Nothing to see here',
         priority_score=2,
     )
-    expected = ignore_child_metric_check_results(
+    expected = ignore_child_valence_scores(
         ValenceScore(
             valence_score=1.2,
             valence_label='Higher',
@@ -78,7 +78,7 @@ def test_override_preference():
         valence_label='Normal',
         valence_description='Nothing to see here',
     )
-    expected = ignore_child_metric_check_results(
+    expected = ignore_child_valence_scores(
         ValenceScore(
             valence_score=0,
             valence_label='Normal',
@@ -101,7 +101,7 @@ def test_positive_valence_magnitude_preference():
         valence_label='Higher',
         valence_description='Nothing to see here',
     )
-    expected = ignore_child_metric_check_results(
+    expected = ignore_child_valence_scores(
         ValenceScore(
             valence_score=1.2,
             valence_label='Higher',
@@ -122,7 +122,7 @@ def test_negative_valence_magnitude_preference():
         valence_label='Lower',
         valence_description='Nothing to see here',
     )
-    expected = ignore_child_metric_check_results(
+    expected = ignore_child_valence_scores(
         ValenceScore(
             valence_score=-1.2,
             valence_label='Lower',
