@@ -5,7 +5,7 @@ import pandas as pd
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.\
     static_normal_range_metric_check import StaticNormalRangeMetricCheck
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
     ValenceScoreSeries
 
 TEST_CONFIGURATION = StaticNormalRangeMetricCheck(

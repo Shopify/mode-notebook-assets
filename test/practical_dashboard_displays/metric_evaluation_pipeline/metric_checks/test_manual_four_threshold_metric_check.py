@@ -4,11 +4,9 @@ import pytest
 import pandas as pd
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
-    ValenceScore
+    ValenceScore, ValenceScoreSeries
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.manual_four_threshold_metric_check import \
     ManualFourThresholdMetricCheck
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
-    ValenceScoreSeries
 
 TEST_CONFIGURATION = ManualFourThresholdMetricCheck(
     threshold_1=10,

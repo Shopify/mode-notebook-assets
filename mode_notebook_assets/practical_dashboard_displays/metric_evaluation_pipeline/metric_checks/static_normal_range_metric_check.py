@@ -8,8 +8,7 @@ from mode_notebook_assets.practical_dashboard_displays.helper_functions import n
     map_score_to_string, map_sign_to_string
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore, \
     ValenceScoreSeries
 
 

@@ -6,9 +6,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
-    ValenceScore
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
-    ValenceScoreSeries
+    ValenceScore, ValenceScoreSeries
 
 
 class AbstractMetricCheck(ABC):
@@ -80,7 +78,6 @@ class AbstractMetricCheck(ABC):
                 caller to conform the indices.
             '''
 
-    # TODO: should _output be a ValenceScoreSeries?
     @staticmethod
     def _validate_output(s: pd.Series, _output: pd.Series) -> None:
         """

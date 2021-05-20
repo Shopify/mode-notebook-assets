@@ -3,9 +3,7 @@ import pytest
 import pandas as pd
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
-    ValenceScore
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score_series import \
-    ValenceScoreSeries
+    ValenceScore, ValenceScoreSeries
 
 GOOD_VALENCE_SCORE = ValenceScore(
     valence_score=1,
