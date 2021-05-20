@@ -4,10 +4,12 @@ import numpy as np
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
-from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_check_results \
-    import MetricCheckResult
+from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score \
+    import ValenceScore, ValenceScoreSeries
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
+
+SUDDEN_CHANGE_METRIC_CHECK_LABEL = 'Sudden Change Metric Check'
 
 
 @dataclass
@@ -44,36 +46,36 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
 
     # for checks with running averages
     minimum_periods: int = 3
-    is_rolling_window: bool = True # if false, expanding
+    is_rolling_window: bool = True  # if false, expanding
     rolling_periods: int = 12
 
     # for checks with SPC constants
     l1_check_constant: float = 3.27
     l2_check_constant: float = 4.905
 
-    def run(self, s: pd.Series) -> pd.Series:
+    def apply(self, s: pd.Series) -> ValenceScoreSeries:
 
         period_change = s - s.shift(1)
 
-        if (self.is_rolling_window):
-            mean_of_pop_differences = abs(s - period_change).\
+        if self.is_rolling_window:
+            mean_of_pop_differences = abs(s - period_change). \
                 rolling(self.rolling_periods, min_periods=self.minimum_periods).mean()
         else:
-            mean_of_pop_differences = abs(s - period_change).\
-                expanding(min_periods=self.minimum_periods).mean() 
-        
+            mean_of_pop_differences = abs(s - period_change). \
+                expanding(min_periods=self.minimum_periods).mean()
+
         sudden_change_l1_threshold_value = self.l1_check_constant * mean_of_pop_differences
         sudden_change_l2_threshold_value = self.l2_check_constant * mean_of_pop_differences
 
         period_is_actionable = np.abs(period_change) >= sudden_change_l1_threshold_value
 
-        period_score = (abs(period_change) - sudden_change_l1_threshold_value)\
-                    / (sudden_change_l2_threshold_value - sudden_change_l1_threshold_value)\
-                    * np.sign(period_change)
-        
+        period_score = (abs(period_change) - sudden_change_l1_threshold_value) \
+                       / (sudden_change_l2_threshold_value - sudden_change_l1_threshold_value) \
+                       * np.sign(period_change)
+
         period_score_actionable = period_score * period_is_actionable
 
-        def map_value_to_result(_raw_score: float) -> MetricCheckResult:
+        def map_value_to_result(_raw_score: float) -> ValenceScore:
 
             _normalized_score = normalize_valence_score(
                 _raw_score,
@@ -90,14 +92,14 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
             )
 
             if np.isnan(_raw_score):
-                return MetricCheckResult(
+                return ValenceScore(
                     valence_score=0,
                     valence_label=map_score_to_string(0),
                     valence_description='Not enough data to calculate if change in prior period is significant.',
-                    metric_check_label='Sudden Change Check',
+                    metric_check_label=SUDDEN_CHANGE_METRIC_CHECK_LABEL,
                 )
 
-            return MetricCheckResult(
+            return ValenceScore(
                 valence_score=_normalized_score,
                 valence_label=map_score_to_string(_normalized_score),
                 valence_description=map_score_to_string(_normalized_score, labels=[
@@ -107,9 +109,8 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
                     f'Sudden {_base_description.lower()}',
                     f'Sudden significant {_base_description.lower()}',
                 ]),
-                metric_check_label='Sudden Change Check',
+                metric_check_label=SUDDEN_CHANGE_METRIC_CHECK_LABEL,
             )
-       
 
         self._validate_inputs(s)
 
@@ -119,4 +120,4 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
 
         self._validate_output(s=s, _output=_output)
 
-        return _output
+        return ValenceScoreSeries(_output)
