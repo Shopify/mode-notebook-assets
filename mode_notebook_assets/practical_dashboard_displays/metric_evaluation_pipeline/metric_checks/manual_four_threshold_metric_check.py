@@ -36,8 +36,11 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
 
     def __post_init__(self):
         _threshold_list = [self.threshold_1, self.threshold_2, self.threshold_3, self.threshold_4]
+        # TODO: Why not do this automatically? Seems like extra work for the user to have to specify the order manually.
+        # TODO: should we check for 2 values being the same?
         assert _threshold_list == sorted(_threshold_list), 'Thresholds must be in increasing order.'
 
+    # TODO: should _validate_inputs() and _validate_output() be called by the parent class?
     def apply(self, s: pd.Series) -> ValenceScoreSeries:
         def map_value_to_result(x: float) -> ValenceScore:
             if x <= self.threshold_1:
@@ -67,6 +70,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
 
             return ValenceScore(
                 valence_score=_normalized_score,
+                # map_score_to_string is not the same
                 valence_label=map_score_to_string(_normalized_score),
                 valence_description=map_score_to_string(_normalized_score, labels=[
                     f'Significantly {_base_description.lower()}',

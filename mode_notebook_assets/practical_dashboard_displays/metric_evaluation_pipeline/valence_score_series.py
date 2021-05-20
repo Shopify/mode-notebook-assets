@@ -1,3 +1,4 @@
+# TODO: could this be move to valence_score.py
 import pandas as pd
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore
@@ -29,6 +30,7 @@ class ValenceScoreSeries:
         s: pd.Series of ValenceScore objects
         """
 
+        # TODO: is this needed?
         for obj in s:
             assert isinstance(obj, ValenceScore), \
                 'ValenceScoreSeries can only be initialized with a Pandas Series of ValenceScore objects'
@@ -49,6 +51,7 @@ class ValenceScoreSeries:
         -------
         ValenceScoreSeries
         """
+        # TODO: feels weird using a test library, but maybe pandas.testing.assert_index_equal?
         assert (self._score_series.index == other._score_series.index).all(), \
             'ValenceScoreSeries can only be combined if theri indices have identical values.'
         assert len(self._score_series.index) == len(other._score_series.index), \
@@ -64,6 +67,8 @@ class ValenceScoreSeries:
         -------
         str
         """
+
+        # TODO: assumes sorted by index? Is it?
         return f'ValenceScoreSeries with {len(self._score_series)} periods.' \
                f'The more recent period index is {self._score_series.index[-1]}.' \
                f'The most recent ValenceScore is {self.last_record().valence_label}' \

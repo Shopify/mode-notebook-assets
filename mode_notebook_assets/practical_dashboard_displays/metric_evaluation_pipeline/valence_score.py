@@ -43,6 +43,7 @@ class ValenceScore:
     priority_score: int = 3
     is_override: bool = False
     is_ambiguous: bool = False
+    # TODO: is metric_check_label labeled anywhere? Seems to getting overwritten by COMBINED_METRIC_CHECK_LABEL
     metric_check_label: str = UNSPECIFIED_METRIC_CHECK_LABEL
     text_separator: str = ' - '
     # todo: rename params

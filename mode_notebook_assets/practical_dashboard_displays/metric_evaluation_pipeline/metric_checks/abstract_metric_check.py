@@ -61,9 +61,12 @@ class AbstractMetricCheck(ABC):
             we can revisit this design choice.
             """
 
+            # TODO: is this assert needed `if is_numeric_dtype(_input_series)`
+            # TODO: alternatively, we can delete the below assert
             assert is_numeric_dtype(_series), 'The "Single Contiguous Dense Sequence" constraint should only be ' \
                                               'applied to numeric Series'
 
+            # TODO: how about assert .notnull().all()?
             assert (
                 not _series.loc[_series.first_valid_index(): _series.last_valid_index()].isnull().values.any()
             ), (
@@ -73,9 +76,12 @@ class AbstractMetricCheck(ABC):
 
         _assert_single_contiguous_dense_sequence(s)
 
+        # TODO: rename input_series to input_series_check? It's a bit confusing, especially with the last assert.
         for _input_series in args:
             if is_numeric_dtype(_input_series):
                 _assert_single_contiguous_dense_sequence(_input_series)
+            # TODO: should the following assert happen earlier? The data doesn't matter if it's not a series.
+            # I think the isinstance() check is faster.
             assert isinstance(_input_series, pd.Series), 'All MetricCheck inputs should be Pandas Series.'
             assert (_input_series.index == s.index), '''
                 All MetricCheck inputs must have identical indices. This is 
@@ -84,6 +90,7 @@ class AbstractMetricCheck(ABC):
                 caller to conform the indices.
             '''
 
+    # TODO: should _output be a ValenceScoreSeries?
     @staticmethod
     def _validate_output(s: pd.Series, _output: pd.Series) -> None:
         """
