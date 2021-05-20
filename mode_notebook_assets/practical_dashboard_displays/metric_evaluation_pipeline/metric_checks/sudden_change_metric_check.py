@@ -112,12 +112,8 @@ class SuddenChangeMetricCheck(AbstractMetricCheck):
                 metric_check_label=SUDDEN_CHANGE_METRIC_CHECK_LABEL,
             )
 
-        self._validate_inputs(s)
-
         _output = period_score_actionable.apply(
             map_value_to_result
         )
-
-        self._validate_output(s=s, _output=_output)
 
         return ValenceScoreSeries(_output)

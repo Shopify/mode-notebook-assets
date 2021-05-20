@@ -1,8 +1,6 @@
 from dataclasses import dataclass
-from typing import Iterable
 
 import pandas as pd
-import numpy as np
 
 from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
     map_score_to_string, map_sign_to_string
@@ -144,8 +142,6 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
                 metric_check_label=self._metric_check_label,
             )
 
-        self._validate_inputs(s)
-
         _central_measure_series = self._calculate_central_measure(s)
         _mean_period_over_period_difference_series = self._calculate_rolling_mean_of_period_over_period_differences(s)
         _score_and_threshold_dataframe = self._calculate_thresholds_and_scores(
@@ -155,7 +151,5 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         )
 
         _output_data_series = _score_and_threshold_dataframe.raw_valence_scores.apply(_map_raw_score_to_result)
-
-        self._validate_output(s, _output_data_series)
 
         return ValenceScoreSeries(_output_data_series)

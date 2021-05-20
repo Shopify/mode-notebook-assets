@@ -79,12 +79,8 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
                 metric_check_label='Manual Four Threshold Check',
             )
 
-        self._validate_inputs(s)
-
         _output_data_series = s.apply(
             map_value_to_result
         )
-
-        self._validate_output(s=s, _output=_output_data_series)
 
         return ValenceScoreSeries(_output_data_series)

@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import List, Union
-
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
-    ValenceScore, ValenceScoreSeries
+    ValenceScoreSeries
 
 
 class AbstractMetricCheck(ABC):
@@ -25,80 +21,6 @@ class AbstractMetricCheck(ABC):
     that it can be re-used. For example, you might add a manually set "realistic range"
     using dataclass parameters.
     """
-
-    @staticmethod
-    def _validate_inputs(s: pd.Series, **kwargs) -> None:
-        """
-        Validates all input series. The first series is assumed to be the
-        main metric series, and it also accepts an arbitrary number of
-        other series. Example usage is;
-
-        ```
-        self._validate_inputs(s, annotations, target)
-        ```
-
-        Parameters
-        ----------
-        s: The main Pandas Series for the MetricCheck
-        kwargs: One or more optional/additional series used in the MetricCheck, e.g. forecast or target
-
-        Returns
-        -------
-        None
-        """
-        def _assert_single_contiguous_dense_sequence(_series: pd.Series) -> None:
-            """
-            Assert that the input series has no Null values after removing leading
-            and trailing Nulls. An motivating example for this requirement is a
-            ForecastCheck, which might have a main value series that ends with trailing
-            Nulls, and a forecast series that begins with leading nulls, but the actual
-            and forecast periods should have no nulls.
-
-            This is a strong assertion, and I'm not 100% sure it's the right one, but
-            I'm putting it in because I'd rather start out with more constraints. However,
-            we can revisit this design choice.
-            """
-            assert (
-                _series.loc[_series.first_valid_index(): _series.last_valid_index()].notnull().all()
-            ), (
-                'Numeric series may have leading or trailing null values to represent missing or non-applicable '
-                'data points. However, values for the series should otherwise be non-Null.'
-            )
-
-        _assert_single_contiguous_dense_sequence(s)
-
-        for _input_series in kwargs.values():
-            assert isinstance(_input_series, pd.Series), 'All MetricCheck inputs should be Pandas Series.'
-            if is_numeric_dtype(_input_series):
-                _assert_single_contiguous_dense_sequence(_input_series)
-            assert (_input_series.index == s.index), '''
-                All MetricCheck inputs must have identical indices. This is 
-                enforced by the MetricEvaluationPipeline. If the MetricCheck is applied 
-                outside of a MetricEvaluationPipeline, it is the responsibility of the 
-                caller to conform the indices.
-            '''
-
-    @staticmethod
-    def _validate_output(s: pd.Series, _output: pd.Series) -> None:
-        """
-        Check the output is valid.
-
-        Parameters
-        ----------
-        s: The input metric data series
-        _output: The output series created by `apply`
-
-        Returns
-        -------
-        None
-        """
-
-        assert s.index.equals(_output.index), 'MetricCheck should not change the index of the series. ' \
-                                              'Indexing must be handled by the MetricEvaluationPipeline.'
-        assert (isinstance(_output, pd.Series)), 'MetricCheck output must be a Pandas Series.'
-        for result in _output.values:
-            assert issubclass(result.__class__, ValenceScore), 'All elements of MetricCheck output ' \
-                                                                    'must inherit from the ValenceScore'
 
     @abstractmethod
     def apply(self, s: pd.Series) -> ValenceScoreSeries:
@@ -125,13 +47,7 @@ class AbstractMetricCheck(ABC):
         A pandas series of ValenceScore objects
         """
 
-        # Validate inputs
-        self._validate_inputs(s)
-
         # Index should be the same as s, and values should be ValenceScores
         _output_data_series = pd.Series()
-
-        # Validate outputs
-        self._validate_output(s, _output_data_series)
 
         return ValenceScoreSeries(_output_data_series)

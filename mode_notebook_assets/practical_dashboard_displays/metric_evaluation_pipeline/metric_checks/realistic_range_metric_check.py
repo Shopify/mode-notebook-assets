@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 import pandas as pd
 
-from mode_notebook_assets.practical_dashboard_displays.helper_functions import normalize_valence_score, \
-    map_score_to_string, map_sign_to_string
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks.abstract_metric_check \
     import AbstractMetricCheck
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore, \
@@ -40,12 +38,8 @@ class RealisticRangeMetricCheck(AbstractMetricCheck):
                 metric_check_label='Realistic Range Metric Check'
             )
 
-        self._validate_inputs(s)
-
         _output = s.apply(
             check_values_against_bounds
         )
-
-        self._validate_output(s=s, _output=_output)
 
         return ValenceScoreSeries(_output)
