@@ -36,8 +36,7 @@ class ManualFourThresholdMetricCheck(AbstractMetricCheck):
 
     def __post_init__(self):
         _threshold_list = [self.threshold_1, self.threshold_2, self.threshold_3, self.threshold_4]
-        # TODO: Why not do this automatically? Seems like extra work for the user to have to specify the order manually.
-        # TODO: should we check for 2 values being the same?
+        assert len(set(_threshold_list)) == len(_threshold_list)
         assert _threshold_list == sorted(_threshold_list), 'Thresholds must be in increasing order.'
 
     # TODO: should _validate_inputs() and _validate_output() be called by the parent class?
