@@ -47,7 +47,8 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
         Calculate the period over period differences for use
         in statistical process control calculations.
         """
-        _differences_series = abs(s - s.shift(1))
+        # TODO: This was originally _differences_series = abs(s - s.shift(1))
+        _differences_series = abs(s.shift(1) - s.shift(2))
 
         if self.is_rolling_window:
             _median_window = _differences_series.rolling(self.rolling_periods)
@@ -93,6 +94,7 @@ class StaticNormalRangeMetricCheck(AbstractMetricCheck):
 
         _threshold_df = pd.DataFrame(central_measure, columns=['central_measure']).assign(
             period_value=s,
+            mean_differences=mean_differences,
             lower_l2_threshold=_calculate_threshold_series(-1, self.l2_normal_range_constant),
             lower_l1_threshold=_calculate_threshold_series(-1, self.l1_normal_range_constant),
             higher_l1_threshold=_calculate_threshold_series(1, self.l1_normal_range_constant),
