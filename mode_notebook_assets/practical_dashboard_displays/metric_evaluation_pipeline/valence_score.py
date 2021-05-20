@@ -56,6 +56,7 @@ class ValenceScore:
         # tweak inputs
         self.child_valence_scores = self.child_valence_scores or []
         self.valence_score_magnitude = np.abs(self.valence_score)
+        self._effective_priority_score = np.inf if self.valence_score == 0 else self.priority_score
 
         # validate inputs
         assert (self.priority_score >= 0), 'Priority score is invalid'
@@ -91,7 +92,7 @@ class ValenceScore:
 
         # Choose the preferred record (if applicable) to simplify case logic and return statement
         _higher_override_result = choose_result(max, 'is_override')
-        _higher_priority_result = choose_result(min, 'priority_score')
+        _higher_priority_result = choose_result(min, '_effective_priority_score')
         _higher_valence_result = choose_result(max, 'valence_score_magnitude', do_not_allow_ties=False)
 
         # Pre-compute combined attributes (some may be ignored)
