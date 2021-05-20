@@ -27,7 +27,7 @@ class AbstractMetricCheck(ABC):
     """
 
     @staticmethod
-    def _validate_inputs(s: pd.Series, *args) -> None:
+    def _validate_inputs(s: pd.Series, **kwargs) -> None:
         """
         Validates all input series. The first series is assumed to be the
         main metric series, and it also accepts an arbitrary number of
@@ -40,7 +40,7 @@ class AbstractMetricCheck(ABC):
         Parameters
         ----------
         s: The main Pandas Series for the MetricCheck
-        args: One or more optional/additional series used in the MetricCheck, e.g. forecast or target
+        kwargs: One or more optional/additional series used in the MetricCheck, e.g. forecast or target
 
         Returns
         -------
@@ -67,7 +67,7 @@ class AbstractMetricCheck(ABC):
 
         _assert_single_contiguous_dense_sequence(s)
 
-        for _input_series in args:
+        for _input_series in kwargs.values():
             assert isinstance(_input_series, pd.Series), 'All MetricCheck inputs should be Pandas Series.'
             if is_numeric_dtype(_input_series):
                 _assert_single_contiguous_dense_sequence(_input_series)
