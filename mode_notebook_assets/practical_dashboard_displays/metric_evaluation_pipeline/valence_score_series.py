@@ -68,9 +68,7 @@ class ValenceScoreSeries:
         str
         """
 
-        # TODO: assumes sorted by index? Is it?
         return f'ValenceScoreSeries with {len(self._score_series)} periods.' \
-               f'The more recent period index is {self._score_series.index[-1]}.' \
                f'The most recent ValenceScore is {self.last_record().valence_label}' \
                f'from {self.last_record().metric_check_label}.'
 
