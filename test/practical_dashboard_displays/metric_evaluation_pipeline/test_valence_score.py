@@ -19,22 +19,22 @@ def test_init_valence_score():
 
 def test_priority_preference():
     priority_1 = ValenceScore(
-        valence_score=0,
-        valence_label='Normal',
-        valence_description='Nothing to see here',
+        valence_score=-1,
+        valence_label='Bad',
+        valence_description='Info about bad',
         priority_score=1,
     )
     priority_2a = ValenceScore(
-        valence_score=1.2,
-        valence_label='Higher',
-        valence_description='Nothing to see here',
+        valence_score=1,
+        valence_label='Good',
+        valence_description='',
         priority_score=2,
     )
     expected = ignore_child_valence_scores(
         ValenceScore(
-            valence_score=0,
-            valence_label='Normal',
-            valence_description='Nothing to see here',
+            valence_score=-1,
+            valence_label='Bad',
+            valence_description='Info about bad',
             priority_score=1,
         )
     )
