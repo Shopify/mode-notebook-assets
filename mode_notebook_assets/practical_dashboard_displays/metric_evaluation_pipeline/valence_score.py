@@ -207,18 +207,6 @@ class ValenceScoreSeries:
 
         return ValenceScoreSeries(self._score_series + other._score_series)
 
-    def __repr__(self) -> str:
-        """
-        Defines the REPL representation of the ValenceScoreSeries.
-
-        Returns
-        -------
-        str
-        """
-
-        return f'ValenceScoreSeries with {len(self._score_series)} periods.' \
-               f'The most recent ValenceScore is {self.last_record().valence_label}' \
-               f'from {self.last_record().metric_check_label}.'
 
     def last_record(self) -> ValenceScore:
         """
@@ -229,4 +217,4 @@ class ValenceScoreSeries:
         -------
         ValenceScore
         """
-        return self._score_series[-1]
+        return self._score_series.iloc[-1]

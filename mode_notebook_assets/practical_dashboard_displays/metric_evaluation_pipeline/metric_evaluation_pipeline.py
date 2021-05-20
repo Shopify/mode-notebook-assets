@@ -1,3 +1,5 @@
+import functools
+import operator
 from dataclasses import dataclass
 from typing import List
 from inspect import signature
@@ -19,11 +21,12 @@ class MetricEvaluationPipeline:
 
     def __post_init__(self):
 
-        self.metric_checks = self.metric_checks or [
-            checks.StaticNormalRangeMetricCheck(),
-            checks.SuddenChangeMetricCheck(),
-            checks.AnnotateAndSnoozeMetricCheck(),
-        ]
+        if self.metric_checks != list():
+            self.metric_checks = self.metric_checks or [
+                checks.StaticNormalRangeMetricCheck(),
+                checks.SuddenChangeMetricCheck(),
+                checks.AnnotateAndSnoozeMetricCheck(),
+            ]
 
         if self.append_to_metric_checks:
             self.metric_checks.extend(self.append_to_metric_checks)
@@ -74,12 +77,15 @@ class MetricEvaluationPipeline:
             assert isinstance(_input_series, pd.Series), 'All MetricCheck inputs should be Pandas Series.'
             if is_numeric_dtype(_input_series):
                 _assert_single_contiguous_dense_sequence(_input_series)
-            assert (_input_series.index == s.index), '''
-                All MetricCheck inputs must have identical indices. This is 
-                enforced by the MetricEvaluationPipeline. If the MetricCheck is applied 
-                outside of a MetricEvaluationPipeline, it is the responsibility of the 
-                caller to conform the indices.
-            '''
+            try:
+                pd.testing.assert_index_equal(_input_series.index, s.index, check_names=False),
+            except AssertionError:
+                raise AssertionError('''
+                    All MetricCheck inputs must have identical indices. This is 
+                    enforced by the MetricEvaluationPipeline. If the MetricCheck is applied 
+                    outside of a MetricEvaluationPipeline, it is the responsibility of the 
+                    caller to conform the indices.
+                ''')
 
     @staticmethod
     def _validate_output_series(s: pd.Series, _output: pd.Series) -> None:
@@ -95,17 +101,18 @@ class MetricEvaluationPipeline:
         -------
         None
         """
+        assert (isinstance(_output, pd.Series)), 'MetricCheck output must be a Pandas Series.'
 
         assert s.index.equals(_output.index), 'MetricCheck should not change the index of the series. ' \
                                               'Indexing must be handled by the MetricEvaluationPipeline.'
-        assert (isinstance(_output, pd.Series)), 'MetricCheck output must be a Pandas Series.'
-
         for result in _output.values:
             assert issubclass(result.__class__, ValenceScore), 'All elements of MetricCheck output ' \
                                                                'must inherit from the ValenceScore'
 
     def apply(self, s, annotations: pd.Series = None, target: pd.Series = None, forecast: pd.Series = None,
               reference: pd.Series = None) -> ValenceScoreSeries:
+
+        assert not s.empty, 'Primary series should not be empty'
 
         _optional_input_series = {
             # We're more permissive with annotations so they can be optional by default
@@ -124,7 +131,9 @@ class MetricEvaluationPipeline:
                     assert series is not None, f'Input {name} is required by {check.__class__}.'
 
         # Validate input
-        self._validate_input_series(s, **_optional_input_series)
+        self._validate_input_series(
+            s, **{key: value for key, value in _optional_input_series.items() if value is not None}
+        )
 
         # Apply MetricChecks using the appropriate inputs
         _metric_check_results = []
@@ -138,7 +147,10 @@ class MetricEvaluationPipeline:
             )
 
         # Combine the outputs of the checks using __add__ method
-        _output_valence_score_series = sum(_metric_check_results)
+        _output_valence_score_series = functools.reduce(
+            operator.add,
+            _metric_check_results
+        )
 
         # Validate the output
         self._validate_output_series(s, _output_valence_score_series._score_series)

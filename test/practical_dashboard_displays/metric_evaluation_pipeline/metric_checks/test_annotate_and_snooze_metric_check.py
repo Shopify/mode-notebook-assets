@@ -40,6 +40,6 @@ def test_annotations():
             ),
         ])
     )
-    actual = AnnotateAndSnoozeMetricCheck().apply(pd.Series(['Very low due to X', '', '', 'Very high due to X']))
+    actual = AnnotateAndSnoozeMetricCheck().apply(None, pd.Series(['Very low due to X', '', '', 'Very high due to X']))
     for i in range(0, len(actual._score_series)):
         assert actual._score_series[i] == expected._score_series[i]

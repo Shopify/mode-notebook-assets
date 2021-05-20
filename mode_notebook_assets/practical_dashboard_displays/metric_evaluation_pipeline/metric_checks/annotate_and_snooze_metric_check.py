@@ -11,8 +11,8 @@ class AnnotateAndSnoozeMetricCheck(AbstractMetricCheck):
     """
     Override the metric annotations to manually specified descriptions.
     """
-    def apply(self, annotations: pd.Series) -> ValenceScoreSeries:
-
+    def apply(self, s, annotations: pd.Series) -> ValenceScoreSeries:
+        # Note that s is not used for this check
         def map_annotation_to_result(x: str) -> ValenceScore:
 
             if x == '':
