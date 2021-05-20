@@ -152,3 +152,20 @@ def test_ambiguous_valence_score():
     assert not (neutral_score + negative_score).is_ambiguous
     assert not (neutral_score + positive_score).is_ambiguous
     assert (positive_score + negative_score).is_ambiguous
+
+
+def test_high_priority_neutral_check_ignored():
+    high_priority_neutral_score = ValenceScore(
+        valence_score=0,
+        valence_label='Normal',
+        valence_description='Nothing to see here',
+        priority_score=1
+    )
+
+    default_priority_negative_score = ValenceScore(
+        valence_score=-1,
+        valence_label='Lower',
+        valence_description='Nothing to see here',
+    )
+
+    assert (high_priority_neutral_score + default_priority_negative_score).valence_score == -1
