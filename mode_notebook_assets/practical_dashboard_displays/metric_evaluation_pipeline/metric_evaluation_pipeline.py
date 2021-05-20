@@ -108,7 +108,10 @@ class MetricEvaluationPipeline:
               reference: pd.Series = None) -> ValenceScoreSeries:
 
         _optional_input_series = {
-            'annotations': annotations,
+            # We're more permissive with annotations so they can be optional by default
+            'annotations': annotations or pd.Series(data=['' for _ in s], index=s.index),
+
+            # These numeric series are None unless provided by the user
             'target':      target,
             'forecast':    forecast,
             'reference':   reference,
