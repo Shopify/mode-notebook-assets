@@ -51,11 +51,8 @@ class ValenceScoreSeries:
         -------
         ValenceScoreSeries
         """
-        # TODO: feels weird using a test library, but maybe pandas.testing.assert_index_equal?
-        assert (self._score_series.index == other._score_series.index).all(), \
-            'ValenceScoreSeries can only be combined if theri indices have identical values.'
-        assert len(self._score_series.index) == len(other._score_series.index), \
-            'ValenceScoreSeries can only be combined if their indices have the same length.'
+        pd.testing.assert_index_equal(self._score_series.index, other._score_series.index, check_names=False), \
+            'ValenceScoreSeries can only be combined if their indices have identical values.'
 
         return ValenceScoreSeries(self._score_series + other._score_series)
 
