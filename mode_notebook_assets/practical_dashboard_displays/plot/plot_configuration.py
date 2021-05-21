@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import plotly.io as pio
 import plotly.graph_objects as go
 import plotly.express as px
@@ -6,9 +8,9 @@ from mode_notebook_assets.practical_dashboard_displays.legacy_helper_functions i
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import ValenceScore
 
 
+@dataclass
 class PlotConfiguration:
-
-    neutral_valence_color = 'rgb(211,211,211)'
+    neutral_valence_color: str = 'rgb(211,211,211)'
     override_valence_color: tuple = 'rgb(158,202,225)'
     good_valence_palette: list = None
     bad_valence_palette: list = None

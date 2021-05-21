@@ -34,7 +34,6 @@ class ValenceChart:
         ).update_layout(
             template=self.config.plotly_template,
         )
-
         for series in self.reference_series_list:
             fig.add_trace(
                 self.config.secondary_chart_trace_template.update(
@@ -57,12 +56,12 @@ class ValenceChart:
                 x=self.time_series.index,
                 y=self.time_series.values,
                 text=self.valence_score_series.score_series.apply(
-                    lambda v: f'<b>{v.valence_score}</b><br>{v.valence_description}'
+                    lambda v: f'<b>{v.valence_label}</b><br>{v.valence_description}'
                 ),
                 marker=self.config.valence_chart_trace_template.marker.update(
                     color=[
                         self.config.map_valence_score_to_color(score)
-                        for score in self.target_attainment_df.actionability_scores
+                        for score in self.valence_score_series.score_series
                     ]
                 )
             )
@@ -133,7 +132,9 @@ class CumulativeTargetAttainmentValenceChart:
     config: PlotConfiguration = None
 
     def __post_init__(self):
-        self.config = self.config or PlotConfiguration()
+        self.config = self.config or PlotConfiguration(
+            neutral_valence_color='rgba(0,0,0,0)'
+        )
 
         self.target_period_index = pd.date_range(start=self.period_start_date, end=self.period_end_date)
 
@@ -164,7 +165,12 @@ class CumulativeTargetAttainmentValenceChart:
                     lambda r: self._calculate_target_attainment_valence(
                         actual_value=r['actual_cumulative'],
                         target_value=r['target_cumulative'],
-                    ) if r['is_current_period'] else 0,
+                    ) if r['is_current_period'] else ValenceScore(
+                        valence_score=0,
+                        valence_label='Inside Target Range',
+                        valence_description='The actual attainment has not deviated far enough '
+                                            'from target to be actionably good or bad.',
+                    ),
                     axis=1
                 )
             ),
@@ -179,29 +185,36 @@ class CumulativeTargetAttainmentValenceChart:
     def _calculate_target_attainment_valence(self, actual_value, target_value):
 
         target_deviation = (actual_value-target_value)/target_value
-        if np.abs(target_deviation) < self.minor_attainment_deviation:
-            return ValenceScore(
-                valence_score=0,
-                valence_label='Inside Target Range',
-                valence_description='The actual attainment has not deviated far enough '
-                                    'from target to be actionably good or bad.',
-            )
-        else:
-            # The minimum actionable score is 0.01 (minor deviation) and the
-            # "soft maximum" is 1 (major deviation). Actionability score is based on
-            # where the deviation occurs between the minor and major deviation thresholds.
-            # Scores above 1 are allowed but do not change the output.
-            pacing_proportion = actual_value/target_value
-            return ValenceScore(
-                valence_score=np.sign(target_deviation) * (
-                    0.01 + (
-                        (np.abs(target_deviation) - self.minor_attainment_deviation)
-                        / (self.major_attainment_deviation - self.minor_attainment_deviation)
-                )),
-                valence_label=f'{"Behind" if np.abs(target_deviation) < 0 else "Ahead of"} Target',
-                valence_description='Pacing to {}% of target.'.format(
-                    int(100 * pacing_proportion)
+        try:
+            if np.abs(target_deviation) < self.minor_attainment_deviation:
+                return ValenceScore(
+                    valence_score=0,
+                    valence_label='Inside Target Range',
+                    valence_description='The actual attainment has not deviated far enough '
+                                        'from target to be actionably good or bad.',
                 )
+            else:
+                # The minimum actionable score is 0.01 (minor deviation) and the
+                # "soft maximum" is 1 (major deviation). Actionability score is based on
+                # where the deviation occurs between the minor and major deviation thresholds.
+                # Scores above 1 are allowed but do not change the output.
+                pacing_proportion = actual_value/target_value
+                return ValenceScore(
+                    valence_score=np.sign(target_deviation) * (
+                        0.01 + (
+                            (np.abs(target_deviation) - self.minor_attainment_deviation)
+                            / (self.major_attainment_deviation - self.minor_attainment_deviation)
+                    )),
+                    valence_label=f'{"Behind" if np.abs(target_deviation) < 0 else "Ahead of"} Target',
+                    valence_description='Pacing to {}% of target.'.format(
+                        int(100 * pacing_proportion)
+                    )
+                )
+        except:
+            return ValenceScore(
+                valence_score=1,
+                valence_label='Error',
+                valence_description='Something went wrong calculating target attainment.',
             )
 
     def to_html(self) -> HTML:
@@ -215,4 +228,4 @@ class CumulativeTargetAttainmentValenceChart:
             ),
             reference_series_list=[self.target_attainment_df.target_cumulative.rename('Target')],
             config=self.config,
-        )
+        ).to_plotly_figure()
