@@ -4,7 +4,7 @@ import pandas as pd
 import mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_checks as checks
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_evaluation_pipeline import \
-    MetricEvaluationPipeline
+    MetricEvaluationPipeline, MetricEvaluationResult
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.valence_score import \
     ValenceScoreSeries, ValenceScore
 
@@ -34,7 +34,7 @@ def test_metric_evaluation_pipeline_override_metric_checks():
 
 
 def test_metric_evaluation_pipeline_runs():
-    assert isinstance(MetricEvaluationPipeline().apply(pd.Series([100]*20)), ValenceScoreSeries)
+    assert isinstance(MetricEvaluationPipeline().apply(pd.Series([100]*20)), MetricEvaluationResult)
 
 
 def test_metric_evaluation_pipeline_fails_with_empty_series():

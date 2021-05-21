@@ -155,6 +155,17 @@ class ValenceScore:
                 valence_description=_combined_valence_description
             )
 
+    def to_dict(self):
+        return {
+            'Valence Score':       self.valence_score,
+            'Valence Label':       self.valence_label,
+            'Valence Description': self.valence_description,
+            'Priority Score':      self.priority_score,
+            'Is Override?':        self.is_override,
+            'Is Ambiguous?':       self.is_ambiguous,
+            'Metric Check Label':  self.metric_check_label,
+        }
+
 
 class ValenceScoreSeries:
     """
@@ -206,7 +217,6 @@ class ValenceScoreSeries:
             'ValenceScoreSeries can only be combined if their indices have identical values.'
 
         return ValenceScoreSeries(self.score_series + other.score_series)
-
 
     def last_record(self) -> ValenceScore:
         """

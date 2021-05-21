@@ -169,3 +169,23 @@ def test_high_priority_neutral_check_ignored():
     )
 
     assert (high_priority_neutral_score + default_priority_negative_score).valence_score == -1
+
+
+def test_valence_score_to_dict():
+    expected = {
+        'Valence Score':       0,
+        'Valence Label':       'Normal',
+        'Valence Description': 'Nothing to see here',
+        'Priority Score':      3,
+        'Is Override?':        False,
+        'Is Ambiguous?':       False,
+        'Metric Check Label':  'Unspecified',
+    }
+    actual = ValenceScore(
+        valence_score=0,
+        valence_label='Normal',
+        valence_description='Nothing to see here',
+        metric_check_label='Unspecified',
+    ).to_dict()
+
+    assert actual == expected

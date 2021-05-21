@@ -15,6 +15,42 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 
 
 @dataclass
+class MetricEvaluationResult:
+    data: pd.Series
+    valence_score_series: ValenceScoreSeries
+
+    def __post_init__(self):
+        try:
+            pd.testing.assert_index_equal(self.data.index, self.valence_score_series.score_series.index, check_names=False)
+        except AssertionError:
+            raise AssertionError('''
+                    MetricEvaluationResult data and valence_score_series must have the same index.
+                ''')
+
+    def plot(self):
+        return NotImplemented
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """
+        Returns time series, valence, and supplemental data to user as a Pandas DataFrame.
+        TODO: Pass extra data series, thresholds, and intermediate values.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return pd.merge(
+            self.data.rename('Period Value'),
+            self.valence_score_series.score_series.rename('ValenceScore Object'),
+            left_index=True,
+            right_index=True,
+        ).join(
+            pd.json_normalize(self.valence_score_series.score_series.apply(lambda v: v.to_dict()))
+        )
+
+
+
+@dataclass
 class MetricEvaluationPipeline:
     metric_checks: List[AbstractMetricCheck] = None
     append_to_metric_checks: List[AbstractMetricCheck] = None
@@ -110,7 +146,7 @@ class MetricEvaluationPipeline:
                                                                'must inherit from the ValenceScore'
 
     def apply(self, s, annotations: pd.Series = None, target: pd.Series = None, forecast: pd.Series = None,
-              reference: pd.Series = None) -> ValenceScoreSeries:
+              reference: pd.Series = None) -> MetricEvaluationResult:
 
         assert not s.empty, 'Primary series should not be empty'
 
@@ -156,4 +192,7 @@ class MetricEvaluationPipeline:
         self._validate_output_series(s, _output_valence_score_series.score_series)
 
         # Return output
-        return _output_valence_score_series
+        return MetricEvaluationResult(
+            data=s,
+            valence_score_series=_output_valence_score_series
+        )
