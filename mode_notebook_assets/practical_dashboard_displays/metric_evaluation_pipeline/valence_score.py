@@ -186,7 +186,7 @@ class ValenceScoreSeries:
             assert isinstance(obj, ValenceScore), \
                 'ValenceScoreSeries can only be initialized with a Pandas Series of ValenceScore objects'
 
-        self._score_series = s.copy()
+        self.score_series = s.copy()
 
     def __add__(self, other: 'ValenceScoreSeries') -> 'ValenceScoreSeries':
         """
@@ -202,10 +202,10 @@ class ValenceScoreSeries:
         -------
         ValenceScoreSeries
         """
-        pd.testing.assert_index_equal(self._score_series.index, other._score_series.index, check_names=False), \
+        pd.testing.assert_index_equal(self.score_series.index, other.score_series.index, check_names=False), \
             'ValenceScoreSeries can only be combined if their indices have identical values.'
 
-        return ValenceScoreSeries(self._score_series + other._score_series)
+        return ValenceScoreSeries(self.score_series + other.score_series)
 
 
     def last_record(self) -> ValenceScore:
@@ -217,4 +217,4 @@ class ValenceScoreSeries:
         -------
         ValenceScore
         """
-        return self._score_series.iloc[-1]
+        return self.score_series.iloc[-1]

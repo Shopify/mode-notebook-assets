@@ -121,8 +121,8 @@ def test_check_correctness():
     )
     actual = TEST_CONFIGURATION.apply(pd.Series(test_series))
 
-    for i in range(0, len(actual._score_series)):
-        assert actual._score_series[i] == expected._score_series[i]
+    for i in range(0, len(actual.score_series)):
+        assert actual.score_series[i] == expected.score_series[i]
 
 
 def test_check_correctness_soft():
@@ -213,8 +213,8 @@ def test_check_correctness_soft():
     )
     actual = TEST_CONFIGURATION.apply(pd.Series(test_series))
 
-    for i in range(0, len(actual._score_series)):
-        assert actual._score_series[i] == expected._score_series[i]
+    for i in range(0, len(actual.score_series)):
+        assert actual.score_series[i] == expected.score_series[i]
 
 
 def test_check_correctness_inverse():
@@ -303,5 +303,5 @@ def test_check_correctness_inverse():
     ]))
     actual = TEST_CONFIGURATION_LOWER_BETTER.apply(pd.Series(test_series))
 
-    for i in range(0, len(actual._score_series)):
-        assert actual._score_series[i] == expected._score_series[i]
+    for i in range(0, len(actual.score_series)):
+        assert actual.score_series[i] == expected.score_series[i]

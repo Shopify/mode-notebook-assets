@@ -48,5 +48,5 @@ def test_annotations():
         lower_bound=2
     ).apply(pd.Series([1, 3, 5, 11]))
 
-    for i in range(0, len(actual._score_series)):
-        assert actual._score_series[i] == expected._score_series[i]
+    for i in range(0, len(actual.score_series)):
+        assert actual.score_series[i] == expected.score_series[i]

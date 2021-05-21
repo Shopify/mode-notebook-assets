@@ -28,4 +28,4 @@ def test_static_normal_range_metric_check_example():
         maximum_learning_differences_quantile=.8,
     ).apply(pd.Series([250, 190, 230, 210, 220, 220, 190, 225, 220, 225, 300, 240, 100, 500, 0]))
 
-    assert [v.valence_score for v in _output._score_series] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 1, -1]
+    assert [v.valence_score for v in _output.score_series] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 1, -1]

@@ -100,8 +100,8 @@ def test_combine_valence_score_series():
 
     actual = s1 + s2
     assert (
-        actual._score_series.apply(lambda v: v.valence_score)
-        == expected._score_series.apply(lambda v: v.valence_score)
+        actual.score_series.apply(lambda v: v.valence_score)
+        == expected.score_series.apply(lambda v: v.valence_score)
     ).all()
 
 

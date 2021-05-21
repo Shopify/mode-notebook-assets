@@ -153,7 +153,7 @@ class MetricEvaluationPipeline:
         )
 
         # Validate the output
-        self._validate_output_series(s, _output_valence_score_series._score_series)
+        self._validate_output_series(s, _output_valence_score_series.score_series)
 
         # Return output
         return _output_valence_score_series
