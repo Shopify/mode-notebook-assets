@@ -15,9 +15,15 @@ fig = charts.TimeSeriesValenceLineChart(
 
 # Layout
 
+st.set_page_config(layout='wide')
+
 st.title('Sales Monitoring Dashboard')
 
-st.plotly_chart(fig)
+col1, col2, col3 = st.beta_columns(3)
+
+col1.plotly_chart(fig, use_container_width=True)
+col2.plotly_chart(fig, use_container_width=True)
+col3.plotly_chart(fig, use_container_width=True)
 
 e1 = st.beta_expander(label='Hidden Gotcha Panel')
 
