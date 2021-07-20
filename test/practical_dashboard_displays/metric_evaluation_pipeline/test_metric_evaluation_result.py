@@ -36,6 +36,20 @@ def test_metric_evaluation_result_initialize():
     )
 
 
+def test_metric_evaluation_result_metadata():
+    test_mep = MetricEvaluationResult(
+        data=TEST_SERIES,
+        valence_score_series=TEST_VALENCE_SCORE_SERIES,
+    ).add_metadata(
+        name='Sales',
+        url='data.com/report'
+    )
+
+    assert test_mep.metadata.name == 'Sales'
+    assert test_mep.metadata.url == 'data.com/report'
+
+
+
 def test_metric_evaluation_result_to_dataframe():
     assert isinstance(
         MetricEvaluationResult(
