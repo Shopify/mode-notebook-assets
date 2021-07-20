@@ -15,9 +15,16 @@ from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipelin
 
 
 @dataclass
+class MetricEvaluationResultMetadata:
+    name: str = None
+    url: str = None
+
+
+@dataclass
 class MetricEvaluationResult:
     data: pd.Series
     valence_score_series: ValenceScoreSeries
+    metadata: MetricEvaluationResultMetadata = None
 
     def __post_init__(self):
         try:
@@ -26,6 +33,20 @@ class MetricEvaluationResult:
             raise AssertionError('''
                     MetricEvaluationResult data and valence_score_series must have the same index.
                 ''')
+
+    def add_metadata(self, name: str = None, url: str = None):
+        """
+        Adds metadata to self.metadata. If a value is provided, it overrides the
+        existing value. If None is provided it does not change the existing value.
+
+        Returns self for method chaining.
+        """
+        self.metadata = MetricEvaluationResultMetadata(
+            name=name or self.metadata.name,
+            url=url or self.metadata.url,
+        )
+
+        return self
 
     def plot(self):
         return NotImplemented
