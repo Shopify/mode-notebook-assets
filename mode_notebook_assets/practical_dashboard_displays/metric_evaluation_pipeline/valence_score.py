@@ -45,7 +45,7 @@ class ValenceScore:
     is_override: bool = False
     is_ambiguous: bool = False
     metric_check_label: str = UNSPECIFIED_METRIC_CHECK_LABEL
-    text_separator: str = ' - '
+    text_separator: str = '<br>'
     child_valence_scores: List[Union['ValenceScore', None]] = None
 
     # todo: repr

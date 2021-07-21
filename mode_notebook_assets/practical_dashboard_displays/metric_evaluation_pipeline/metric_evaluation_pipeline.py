@@ -42,8 +42,8 @@ class MetricEvaluationResult:
         Returns self for method chaining.
         """
         self.metadata = MetricEvaluationResultMetadata(
-            name=name or self.metadata.name,
-            url=url or self.metadata.url,
+            name=name or None if self.metadata is None else self.metadata.name,
+            url=url or None if self.metadata is None else self.metadata.url,
         )
 
         return self

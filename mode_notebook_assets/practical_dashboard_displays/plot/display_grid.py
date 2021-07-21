@@ -1,13 +1,14 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import List
 
 import plotly.graph_objects as go
-import pandas as pd
 import numpy as np
 from IPython.core.display import HTML
 
 from mode_notebook_assets.practical_dashboard_displays.metric_evaluation_pipeline.metric_evaluation_pipeline import \
     MetricEvaluationResult
+from mode_notebook_assets.practical_dashboard_displays.plot.charts import ValenceChart, TimeSeriesValenceLineChart
 from mode_notebook_assets.practical_dashboard_displays.plot.plot_configuration import PlotConfiguration
 
 
@@ -15,24 +16,107 @@ from mode_notebook_assets.practical_dashboard_displays.plot.plot_configuration i
 class PlotlyTraceGridColumnSpec(object):
     horizontal_units: int  # scale-less; use for ratio
 
-    def add_content_to_grid(self, grid: go.Figure) -> go.Figure:
-        pass
+    def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
+                                                    config: PlotConfiguration) -> List[go.Trace]:
+        return [
+            go.Scatter(
+                x=[0.5],
+                y=[0.5],
+                text=['Placeholder'],
+                hovertemplate='This trace has not been implemented.',
+                textposition='middle center',
+                mode='text',
+                name='Info',
+                textfont=config.plotly_template.layout.font.to_plotly_json(),
+            )
+        ]
 
 
-class Text(PlotlyTraceGridColumnSpec):
-    pass
+class AbstractTextColumn(PlotlyTraceGridColumnSpec):
+
+    @staticmethod
+    @abstractmethod
+    def _get_text_from_result(self, result: MetricEvaluationResult) -> str:
+        return NotImplemented
+
+    @property
+    def label(self):
+        return 'Info'
+
+    @property
+    @abstractmethod
+    def hovertemplate(self):
+        return 'See Plotly documentation to configure hover template.'
+
+    def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
+                                                    config: PlotConfiguration) -> List[go.Trace]:
+        return [
+            go.Scatter(
+                x=[0.5],
+                y=[0.5],
+                text=[self._get_text_from_result(result)],
+                hovertemplate=self.hovertemplate,
+                textposition='middle center',
+                mode='text',
+                name=self.label,
+                textfont=config.plotly_template.layout.font.to_plotly_json(),
+            )
+        ]
 
 
-class Number(PlotlyTraceGridColumnSpec):
-    pass
+class MostRecentPeriodValue(AbstractTextColumn):
 
+    @property
+    def hovertemplate(self):
+        return 'The most recent period value is %{text}.'
+
+    def _get_text_from_result(self, result: MetricEvaluationResult) -> str:
+        return str(result.data.values[-1])
+
+
+class ResultName(AbstractTextColumn):
+
+    @property
+    def hovertemplate(self):
+        return 'This row displays results for %{text}.'
+
+    def _get_text_from_result(self, result: MetricEvaluationResult) -> str:
+        if result.metadata is not None:
+            if result.metadata.url is None:
+                return result.metadata.name or 'Metric Unknown'
+            else:
+                return f'<a href="{result.metadata.url}">{result.metadata.name}</a>'
+        else:
+            return 'Metric Unknown'
 
 class ValenceDot(PlotlyTraceGridColumnSpec):
-    pass
+
+    def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
+                                                    config: PlotConfiguration) -> List[go.Trace]:
+        return [
+            go.Scatter(
+                x=[0.5],
+                y=[0.5],
+                marker=dict(
+                    size=[25],
+                    color=[config.map_valence_score_to_color(result.valence_score_series.last_record())]
+                ),
+                hovertemplate=result.valence_score_series.last_record().valence_description,
+                name='Valence Indicator',
+            )
+        ]
 
 
 class Sparkline(PlotlyTraceGridColumnSpec):
-    pass
+
+    def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
+                                                    config: PlotConfiguration) -> List[go.Trace]:
+        _time_series_chart = TimeSeriesValenceLineChart(
+            result=result,
+            metric_name=None if result.metadata is None else result.metadata.name,
+            config=config,
+        ).to_plotly_figure()
+        return _time_series_chart.data
 
 
 class BarChartColumn(PlotlyTraceGridColumnSpec):
@@ -56,19 +140,18 @@ class GridDisplay(object):
         _column_normalized_breakpoints = _column_unit_breakpoints / np.sum(_column_unit_widths)
         _row_normalized_breakpoints = np.flip((np.arange(len(self.results)) + 1)) / (len(self.results))
 
-        _layout = go.Layout(title=self.title)
+        _layout = go.Layout(
+            title=self.title,
+            showlegend=False,
+            template=self.config.plotly_template,
+        )
 
         for column_index in range(0, self._n_cols):
-            column_display_index = str(column_index + 1)
             for row_index in range(0, self._n_rows):
-                row_display_index = str(row_index + 1)
                 _axis_number = row_index * self._n_cols + column_index + 1
-                _xaxis_name = f'xaxis{_axis_number}'
-                _yaxis_name = f'yaxis{_axis_number}'
                 _layout.update(
                     dict1={
                         f'xaxis{_axis_number}': {
-                            'range':          [0, 1],
                             'anchor':         f'y{_axis_number}',
                             'domain':         [
                                 # left domain value
@@ -81,11 +164,10 @@ class GridDisplay(object):
                             'showticklabels': False
                         },
                         f'yaxis{_axis_number}': {
-                            'range':          [0, 1],
                             'anchor':         f'x{_axis_number}',
                             'domain':         [
                                 # lower domain value
-                                0 if row_index == self._n_rows-1 else _row_normalized_breakpoints[row_index + 1],
+                                0 if row_index == self._n_rows - 1 else _row_normalized_breakpoints[row_index + 1],
                                 # upper domain value
                                 _row_normalized_breakpoints[row_index],
                             ],
@@ -100,28 +182,24 @@ class GridDisplay(object):
 
     def _create_figure_from_layout(self, layout: go.Layout) -> go.Figure:
         # Temporary data
-        return go.Figure(
-            data=[{
-                'type':    'bar',
-                'x':       [0],
-                'y':       [0],
-                'xaxis':   f'x{i}',
-                'yaxis':   f'y{i}',
-                'visible': False
-            } for i in range(1, self._n_cols * self._n_rows + 1)],
-            layout=layout.update(dict1={'annotations': [
-                {
-                    'x':         1,
-                    'y':         0.5,
-                    'font':      {'size': 15},
-                    'text':      str(i),
-                    'xref':      f'x{i}',
-                    'yref':      f'y{i}',
-                    'xanchor':   'right',
-                    'showarrow': False
-                } for i in range(1, self._n_cols * self._n_rows + 1)
-            ]})
-        )
+        _figure = go.Figure(layout=layout)
+
+        for column_index in range(0, self._n_cols):
+            for row_index in range(0, self._n_rows):
+                _axis_number = row_index * self._n_cols + column_index + 1
+                _result_traces = self.column_schema[column_index].create_figure_from_metirc_evaluation_result(
+                    self.results[row_index],
+                    self.config,
+                )
+                for trace in _result_traces:
+                    _figure = _figure.add_trace(
+                        trace.update(
+                            xaxis=f'x{_axis_number}',
+                            yaxis=f'y{_axis_number}',
+                        )
+                    )
+
+        return _figure
 
     def to_html(self) -> HTML:
         return HTML(self.to_plotly_figure().to_html())

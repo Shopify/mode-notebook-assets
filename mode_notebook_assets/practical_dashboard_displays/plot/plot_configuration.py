@@ -15,10 +15,10 @@ class PlotConfiguration:
     good_valence_palette: list = None
     bad_valence_palette: list = None
     ambiguous_valence_palette: list = None
-    primary_chart_trace_template = None
-    secondary_chart_trace_template = None
-    valence_chart_trace_template = None
-    plotly_template = None
+    primary_chart_trace_template: go.Trace = None
+    secondary_chart_trace_template: go.Trace = None
+    valence_chart_trace_template: go.Trace = None
+    plotly_template: go.layout.Template = None
 
     def __post_init__(self):
         self.good_valence_palette = list(self.good_valence_palette or px.colors.sequential.Greens[3:-2])
