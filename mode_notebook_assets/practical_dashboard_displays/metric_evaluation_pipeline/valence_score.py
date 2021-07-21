@@ -55,6 +55,9 @@ class ValenceScore:
         self.valence_score_magnitude = np.abs(self.valence_score)
         self._effective_priority_score = np.inf if self.valence_score == 0 else self.priority_score
 
+        # Clean description
+        self.valence_description = self.valence_description.replace(self.text_separator*2, self.text_separator)
+
         # validate inputs
         assert (self.priority_score >= 0), 'Priority score is invalid'
 

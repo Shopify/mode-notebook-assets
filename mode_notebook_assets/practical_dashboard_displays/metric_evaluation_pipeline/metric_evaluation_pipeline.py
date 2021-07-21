@@ -82,7 +82,6 @@ class MetricEvaluationPipeline:
             self.metric_checks = self.metric_checks or [
                 checks.StaticNormalRangeMetricCheck(),
                 checks.SuddenChangeMetricCheck(),
-                checks.AnnotateAndSnoozeMetricCheck(),
             ]
 
         if self.append_to_metric_checks:

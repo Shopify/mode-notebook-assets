@@ -74,11 +74,30 @@ class MostRecentPeriodValue(AbstractTextColumn):
         return str(result.data.values[-1])
 
 
+class MostRecentPeriodBarHorizontal(PlotlyTraceGridColumnSpec):
+
+    def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
+                                                    config: PlotConfiguration) -> List[go.Trace]:
+
+        return [
+            go.Bar(
+                x=[result.data.values[-1]],
+                y=[0],
+                orientation='h',
+                text=[''],
+                hovertemplate='',
+                name='Info',
+                width=.25,
+                marker={'color': config.secondary_chart_trace_template.line.color}
+            )
+        ]
+
+
 class ResultName(AbstractTextColumn):
 
     @property
     def hovertemplate(self):
-        return 'This row displays results for %{text}.'
+        return 'Click here for detailed insights for this metric.'
 
     def _get_text_from_result(self, result: MetricEvaluationResult) -> str:
         if result.metadata is not None:
@@ -88,6 +107,7 @@ class ResultName(AbstractTextColumn):
                 return f'<a href="{result.metadata.url}">{result.metadata.name}</a>'
         else:
             return 'Metric Unknown'
+
 
 class ValenceDot(PlotlyTraceGridColumnSpec):
 
@@ -181,8 +201,9 @@ class GridDisplay(object):
         return _layout
 
     def _create_figure_from_layout(self, layout: go.Layout) -> go.Figure:
-        # Temporary data
         _figure = go.Figure(layout=layout)
+
+        _maximum_recent_period = max([result.data.values[-1] for result in self.results])
 
         for column_index in range(0, self._n_cols):
             for row_index in range(0, self._n_rows):
@@ -198,6 +219,12 @@ class GridDisplay(object):
                             yaxis=f'y{_axis_number}',
                         )
                     )
+
+                if isinstance(self.column_schema[column_index], MostRecentPeriodBarHorizontal):
+                    _figure.layout.update(
+                        {f'xaxis{_axis_number}': {'range': [0, _maximum_recent_period]}}
+                    )
+
 
         return _figure
 
@@ -217,23 +244,9 @@ class SparklineGridDisplay(GridDisplay):
     Use properties?
     """
     column_schema = [
-        # Text(horizontal_units=1),
-        # Number(show_bar=True, horizontal_units=2),
-        # ValenceDot(horizontal_units=1),
-        # Sparkline(type='', horizontal_units=4),
+        ValenceDot(horizontal_units=1),
+        ResultName(horizontal_units=2),
+        MostRecentPeriodValue(horizontal_units=1),
+        MostRecentPeriodBarHorizontal(horizontal_units=1),
+        Sparkline(horizontal_units=4),
     ]
-
-# GridDisplay(
-#     title='',
-#     results=[
-#         MetricEvaluationResult(),
-#         MetricEvaluationResult(),
-#     ],
-#     config=PlotConfiguration(),
-#     column_schema=[
-#         Text(horizontal_units=1),
-#         Number(show_bar=True, horizontal_units=2),
-#         ValenceDot(horizontal_units=1),
-#         Sparkline(type='', horizontal_units=4),
-#     ],
-# )

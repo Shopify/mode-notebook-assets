@@ -38,7 +38,8 @@ class PlotConfiguration:
         self.valence_chart_trace_template = self.valence_chart_trace_template or go.Scatter(
             mode='markers',
             name='Valence',
-            hoverinfo="x+text",
+            hoverinfo="x+y+text",
+            hovertemplate='<b>%{x}</b>: %{y}<br><br>%{text}',
             marker=dict(size=10),
             showlegend=False,
         )
