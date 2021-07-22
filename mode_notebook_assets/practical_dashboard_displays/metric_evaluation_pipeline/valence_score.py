@@ -99,10 +99,13 @@ class ValenceScore:
         _combined_child_valence_scores = self.child_valence_scores + other.child_valence_scores
         _combined_valence_description = (
             self.text_separator.join(
-                set(
-                    self.valence_description.split(sep=self.text_separator)
-                    + other.valence_description.split(sep=other.text_separator)
-                )
+                set([
+                    s for s in (
+                            self.valence_description.split(sep=self.text_separator)
+                            + other.valence_description.split(sep=other.text_separator)
+                    )
+                    if s != ''
+                ])
             )
         )
 

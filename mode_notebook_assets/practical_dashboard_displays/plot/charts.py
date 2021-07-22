@@ -28,7 +28,6 @@ class ValenceChart:
         self.layout = self.layout or go.Layout()
 
     def _build_figure(self) -> go.Figure:
-
         fig = go.Figure(
             layout=self.layout,
         ).update_layout(
@@ -43,6 +42,7 @@ class ValenceChart:
                 )
             )
 
+        # Add the main metric trace
         fig.add_trace(
             self.config.primary_chart_trace_template.update(
                 x=self.time_series.index,
@@ -51,6 +51,7 @@ class ValenceChart:
             )
         )
 
+        # Add color dots with mouseover text for past valence scores
         fig.add_trace(
             self.config.valence_chart_trace_template.update(
                 x=self.time_series.index,
@@ -62,6 +63,20 @@ class ValenceChart:
                     color=[
                         self.config.map_valence_score_to_color(score)
                         for score in self.valence_score_series.score_series
+                    ]
+                )
+            )
+        )
+
+        # Cover up past valence with a neutral color
+        fig.add_trace(
+            self.config.valence_chart_trace_template.update(
+                x=self.time_series.index[0:-1],
+                y=self.time_series.values[0:-1],
+                marker=self.config.valence_chart_trace_template.marker.update(
+                    color=[
+                        self.config.map_past_valence_scores_to_color(score)
+                        for score in self.valence_score_series.score_series[0:-1]
                     ]
                 )
             )
@@ -155,7 +170,8 @@ class CumulativeTargetAttainmentValenceChart:
         current_period_index = self._cleaned_actual.index.get_loc(current_period)
 
         self.target_attainment_df = pd.DataFrame(index=self.target_period_index).assign(
-            is_current_period=pd.Series([False] * (len(self._cleaned_actual)-1) + [True], index=self._cleaned_actual.index),
+            is_current_period=pd.Series([False] * (len(self._cleaned_actual) - 1) + [True],
+                                        index=self._cleaned_actual.index),
             actual=self._cleaned_actual,
             actual_cumulative=self._cleaned_actual.cumsum(),
             target_interpolated=interpolated_period_target,
@@ -174,17 +190,19 @@ class CumulativeTargetAttainmentValenceChart:
                     axis=1
                 )
             ),
-            actionability_actuals=lambda df: df.actual_cumulative,  # initialize as empty; only last period will be calculated
+            actionability_actuals=lambda df: df.actual_cumulative,
+            # initialize as empty; only last period will be calculated
         )
 
-        self.target_attainment_df.actionability_scores[current_period_index] = self._calculate_target_attainment_valence(
+        self.target_attainment_df.actionability_scores[
+            current_period_index] = self._calculate_target_attainment_valence(
             actual_value=self.target_attainment_df.actual_cumulative[current_period_index],
             target_value=self.target_attainment_df.target_cumulative[current_period_index],
         )
 
     def _calculate_target_attainment_valence(self, actual_value, target_value):
 
-        target_deviation = (actual_value-target_value)/target_value
+        target_deviation = (actual_value - target_value) / target_value
         try:
             if np.abs(target_deviation) < self.minor_attainment_deviation:
                 return ValenceScore(
@@ -198,10 +216,10 @@ class CumulativeTargetAttainmentValenceChart:
                 # "soft maximum" is 1 (major deviation). Actionability score is based on
                 # where the deviation occurs between the minor and major deviation thresholds.
                 # Scores above 1 are allowed but do not change the output.
-                pacing_proportion = actual_value/target_value
+                pacing_proportion = actual_value / target_value
                 return ValenceScore(
                     valence_score=np.sign(target_deviation) * (
-                        0.01 + (
+                            0.01 + (
                             (np.abs(target_deviation) - self.minor_attainment_deviation)
                             / (self.major_attainment_deviation - self.minor_attainment_deviation)
                     )),

@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List
 
@@ -13,9 +13,10 @@ from mode_notebook_assets.practical_dashboard_displays.plot.plot_configuration i
 
 
 @dataclass
-class PlotlyTraceGridColumnSpec(object):
+class PlotlyTraceGridColumnSpec(ABC):
     horizontal_units: int  # scale-less; use for ratio
 
+    @abstractmethod
     def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
                                                     config: PlotConfiguration) -> List[go.Trace]:
         return [
@@ -32,7 +33,7 @@ class PlotlyTraceGridColumnSpec(object):
         ]
 
 
-class AbstractTextColumn(PlotlyTraceGridColumnSpec):
+class AbstractTextColumn(PlotlyTraceGridColumnSpec, ABC):
 
     @staticmethod
     @abstractmethod
@@ -67,8 +68,12 @@ class AbstractTextColumn(PlotlyTraceGridColumnSpec):
 class MostRecentPeriodValue(AbstractTextColumn):
 
     @property
+    def label(self):
+        return 'Most Recent Value'
+
+    @property
     def hovertemplate(self):
-        return 'The most recent period value is %{text}.'
+        return '%{text}'
 
     def _get_text_from_result(self, result: MetricEvaluationResult) -> str:
         return str(result.data.values[-1])
@@ -85,8 +90,8 @@ class MostRecentPeriodBarHorizontal(PlotlyTraceGridColumnSpec):
                 y=[0],
                 orientation='h',
                 text=[''],
-                hovertemplate='',
-                name='Info',
+                hovertemplate='%{x}',
+                name='Most Recent Value',
                 width=.25,
                 marker={'color': config.secondary_chart_trace_template.line.color}
             )

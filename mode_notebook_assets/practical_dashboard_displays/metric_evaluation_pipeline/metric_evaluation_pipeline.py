@@ -172,7 +172,10 @@ class MetricEvaluationPipeline:
 
         _optional_input_series = {
             # We're more permissive with annotations so they can be optional by default
-            'annotations': annotations or pd.Series(data=['' for _ in s], index=s.index),
+            'annotations': (
+                pd.Series(data=['' for _ in s], index=s.index) if annotations is None
+                else annotations.reindex(index=s.index, fill_value='')
+            ),
 
             # These numeric series are None unless provided by the user
             'target':      target,
