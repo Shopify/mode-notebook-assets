@@ -83,7 +83,6 @@ class MostRecentPeriodBarHorizontal(PlotlyTraceGridColumnSpec):
 
     def create_figure_from_metirc_evaluation_result(self, result: MetricEvaluationResult,
                                                     config: PlotConfiguration) -> List[go.Trace]:
-
         return [
             go.Bar(
                 x=[result.data.values[-1]],
@@ -140,7 +139,10 @@ class Sparkline(PlotlyTraceGridColumnSpec):
             result=result,
             metric_name=None if result.metadata is None else result.metadata.name,
             config=config,
-        ).to_plotly_figure()
+        ).to_plotly_figure().update_traces(
+            hovertemplate='<b>%{x}</b>: %{y}',
+            name='Metric Value' if result.metadata is None else result.metadata.name,
+        )
         return _time_series_chart.data
 
 
@@ -229,7 +231,6 @@ class GridDisplay(object):
                     _figure.layout.update(
                         {f'xaxis{_axis_number}': {'range': [0, _maximum_recent_period]}}
                     )
-
 
         return _figure
 

@@ -40,10 +40,15 @@ RANDOM_TIME_SERIES_10 = [pd.Series(
 METRIC_EVALUATION_RESULTS_LIST = [
     mep.MetricEvaluationPipeline().apply(
         s=SERIES_1
-    ).add_metadata(name='Increasing Sales'),
+    ).add_metadata(
+        name='Increasing Sales'
+    ),
     mep.MetricEvaluationPipeline().apply(
         s=SERIES_2
-    ).add_metadata(name='Increasing Sales', url='https://www.shopify.com'),
+    ).add_metadata(
+        name='Increasing Sales',
+        url='https://www.shopify.com'
+    ),
     mep.MetricEvaluationPipeline().apply(
         s=SERIES_3
     ),
